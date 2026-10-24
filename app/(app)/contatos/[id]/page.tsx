@@ -13,7 +13,7 @@ import type { ActingUser } from "@/server/services/owners";
 
 import { ContactPanel } from "./contact-panel";
 
-export const metadata = { title: "Contato — MarcaAi" };
+export const metadata = { title: "Contato — Tervian" };
 
 function actingUserFrom(session: AuthedSession): ActingUser {
   return {

@@ -4,7 +4,7 @@ import { AsyncLocalStorage } from "node:async_hooks";
  * Contexto de cadastro (tarefa 003).
  *
  * O Better Auth cria usuários por conta própria (endpoint `/sign-up/email`). Como
- * no MarcaAi todo usuário pertence a uma conta (`User.accountId` NOT NULL) e o
+ * no Tervian todo usuário pertence a uma conta (`User.accountId` NOT NULL) e o
  * papel (`role`) é controlado pelo servidor, o cadastro só pode acontecer por
  * dois fluxos NOSSOS:
  *

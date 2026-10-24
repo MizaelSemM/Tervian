@@ -23,7 +23,7 @@ import { deactivateUser, listTeam, reactivateUser } from "@/server/team";
 const run = Math.random().toString(36).slice(2, 8);
 const TEST_PASSWORD = "senha-de-teste-123";
 const HOUR_MS = 60 * 60 * 1000;
-const email = (tag: string) => `auth-${tag}-${run}@teste.marcaai.dev`;
+const email = (tag: string) => `auth-${tag}-${run}@teste.tervian.dev`;
 const tokenFromUrl = (url: string) => url.slice(url.lastIndexOf("/") + 1);
 
 describe("auth: cadastro, convites e equipe (integração)", () => {

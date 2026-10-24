@@ -1,4 +1,4 @@
-// Seed do MarcaAi — configuração inicial + dados de demonstração.
+// Seed do Tervian — configuração inicial + dados de demonstração.
 //
 // Idempotente: usa IDs fixos com upsert; rodar de novo não duplica nada
 // (e não sobrescreve edições feitas pelo usuário — update é vazio de propósito).
@@ -334,7 +334,7 @@ async function main() {
       id: USERS.admin,
       accountId: ACCOUNT_ID,
       name: "Ana Souza",
-      email: "ana@demo.marcaai.dev",
+      email: "ana@demo.tervian.dev",
       emailVerified: true,
       role: "ADMIN",
     },
@@ -347,7 +347,7 @@ async function main() {
       id: USERS.seller,
       accountId: ACCOUNT_ID,
       name: "Bruno Lima",
-      email: "bruno@demo.marcaai.dev",
+      email: "bruno@demo.tervian.dev",
       emailVerified: true,
       role: "SELLER",
     },

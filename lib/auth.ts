@@ -9,7 +9,7 @@ import { env } from "@/lib/env";
 import { prismaBase } from "@/lib/prisma";
 
 /**
- * Better Auth — autenticação do MarcaAi (tarefa 003).
+ * Better Auth — autenticação do Tervian (tarefa 003).
  *
  * Decisões (ver .notes/003-auth-contas-convites.md):
  * - e-mail + senha com hash scrypt (padrão do Better Auth — decisão do 000);
@@ -29,7 +29,7 @@ import { prismaBase } from "@/lib/prisma";
 const PASSWORD_RESET_TTL_SECONDS = 60 * 60; // 1 hora (RF-01: "expiração curta")
 
 export const auth = betterAuth({
-  appName: "MarcaAi",
+  appName: "Tervian",
   baseURL: env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
 
@@ -73,10 +73,10 @@ export const auth = betterAuth({
         before: async (user) => {
           const context = getSignupContext();
           if (!context) {
-            // Bloqueia o endpoint público: no MarcaAi, cadastro só pelo nosso
+            // Bloqueia o endpoint público: no Tervian, cadastro só pelo nosso
             // formulário (criação de empresa) ou pelo aceite de convite.
             throw new APIError("FORBIDDEN", {
-              message: "Cadastro permitido apenas pelos fluxos do MarcaAi.",
+              message: "Cadastro permitido apenas pelos fluxos do Tervian.",
             });
           }
           return {

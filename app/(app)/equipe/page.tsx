@@ -6,7 +6,7 @@ import { InviteForm } from "./invite-form";
 import { PendingInvites } from "./pending-invites";
 import { TeamList } from "./team-list";
 
-export const metadata = { title: "Equipe — MarcaAi" };
+export const metadata = { title: "Equipe — Tervian" };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 

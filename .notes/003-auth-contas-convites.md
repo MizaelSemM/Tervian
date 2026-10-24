@@ -58,7 +58,7 @@
 
 **Seed + DX**
 
-- `npm run db:seed` cria os logins demo: `ana@demo.marcaai.dev` (Admin) e `bruno@demo.marcaai.dev` (Vendedor), senha `demo1234` (credenciais Better Auth com hash scrypt — só demonstração local, documentado no README).
+- `npm run db:seed` cria os logins demo: `ana@demo.tervian.dev` (Admin) e `bruno@demo.tervian.dev` (Vendedor), senha `demo1234` (credenciais Better Auth com hash scrypt — só demonstração local, documentado no README).
 - Sem `RESEND_API_KEY`, `lib/email.ts` registra o e-mail (com link) no console — dá para testar reset/convite sem provedor.
 
 **Verificações**

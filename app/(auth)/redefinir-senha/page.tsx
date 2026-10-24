@@ -2,7 +2,7 @@ import { Suspense } from "react";
 
 import { ResetPasswordForm } from "./reset-password-form";
 
-export const metadata = { title: "Redefinir senha — MarcaAi" };
+export const metadata = { title: "Redefinir senha — Tervian" };
 
 /**
  * Redefinição de senha (RF-01). O link do e-mail passa pelo Better Auth

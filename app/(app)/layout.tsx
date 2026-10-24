@@ -25,7 +25,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       <header className="flex items-center justify-between gap-4 border-b border-border px-4 py-3">
         <div className="flex items-center gap-6">
           <Link href="/" className="text-lg font-semibold tracking-tight">
-            MarcaAi
+            Tervian
           </Link>
           <Link
             href="/contatos"

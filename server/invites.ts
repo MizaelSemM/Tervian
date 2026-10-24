@@ -64,7 +64,7 @@ export async function createInvite(input: {
   if (elsewhere) {
     throw new AppError(
       "EMAIL_TAKEN",
-      "Este e-mail já tem uma conta no MarcaAi (cada e-mail pertence a uma única conta).",
+      "Este e-mail já tem uma conta no Tervian (cada e-mail pertence a uma única conta).",
     );
   }
 
@@ -234,7 +234,7 @@ export async function acceptInvite(input: {
   if (existing) {
     throw new AppError(
       "EMAIL_TAKEN",
-      "Este e-mail já tem uma conta no MarcaAi. Entre com a sua senha ou peça a recuperação.",
+      "Este e-mail já tem uma conta no Tervian. Entre com a sua senha ou peça a recuperação.",
     );
   }
 
@@ -267,7 +267,7 @@ export async function acceptInvite(input: {
     if (isAlreadyExistsError(error)) {
       throw new AppError(
         "EMAIL_TAKEN",
-        "Este e-mail já tem uma conta no MarcaAi. Entre com a sua senha ou peça a recuperação.",
+        "Este e-mail já tem uma conta no Tervian. Entre com a sua senha ou peça a recuperação.",
       );
     }
     console.error("[invite] Erro inesperado no aceite do convite:", error);

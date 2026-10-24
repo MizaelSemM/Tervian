@@ -45,7 +45,7 @@ beforeAll(async () => {
     data: {
       accountId,
       name: "Admin Contatos",
-      email: `contacts-admin-${run}@teste.marcaai.dev`,
+      email: `contacts-admin-${run}@teste.tervian.dev`,
       role: "ADMIN",
     },
   });
@@ -55,7 +55,7 @@ beforeAll(async () => {
     data: {
       accountId,
       name: "Vendedor Contatos",
-      email: `contacts-seller-${run}@teste.marcaai.dev`,
+      email: `contacts-seller-${run}@teste.tervian.dev`,
       role: "SELLER",
     },
   });

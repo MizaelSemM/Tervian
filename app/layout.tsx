@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MarcaAi",
+  title: "Tervian",
   description: "CRM de follow-up para pequenas equipes de vendas",
 };
 

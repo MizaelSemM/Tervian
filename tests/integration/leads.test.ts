@@ -30,7 +30,7 @@ async function makeAccount(tag: string): Promise<{
     data: {
       accountId: account.id,
       name: `Admin ${tag}`,
-      email: `lead-admin-${tag}-${run}@teste.marcaai.dev`,
+      email: `lead-admin-${tag}-${run}@teste.tervian.dev`,
       role: "ADMIN",
     },
   });
@@ -38,7 +38,7 @@ async function makeAccount(tag: string): Promise<{
     data: {
       accountId: account.id,
       name: `Vendedor ${tag}`,
-      email: `lead-seller-${tag}-${run}@teste.marcaai.dev`,
+      email: `lead-seller-${tag}-${run}@teste.tervian.dev`,
       role: "SELLER",
     },
   });

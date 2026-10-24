@@ -26,19 +26,19 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: marcaai_test
+          POSTGRES_DB: tervian_test
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres -d marcaai_test"
+          --health-cmd "pg_isready -U postgres -d tervian_test"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
 
     env:
       # Banco efêmero do runner: cada execução começa vazia e roda as migrations.
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/marcaai_test
-      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/marcaai_test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tervian_test
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/tervian_test
       # Credenciais de CI — nunca são usadas em produção.
       BETTER_AUTH_SECRET: ci-only-secret-with-at-least-32-characters
       BETTER_AUTH_URL: http://localhost:3000

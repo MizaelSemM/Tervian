@@ -10,7 +10,7 @@ import { listContacts } from "@/server/services/contacts";
 
 import type { ActingUser } from "@/server/services/owners";
 
-export const metadata = { title: "Contatos — MarcaAi" };
+export const metadata = { title: "Contatos — Tervian" };
 
 type ContactsSearchParams = {
   q?: string;

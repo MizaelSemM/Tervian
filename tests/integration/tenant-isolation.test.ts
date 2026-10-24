@@ -18,7 +18,7 @@ async function seedAccount(tag: "a" | "b") {
   const accountId = account.id;
 
   const user = await prismaBase.user.create({
-    data: { accountId, name: `Vendedor ${tag}`, email: `iso-${tag}-${run}@teste.marcaai.dev` },
+    data: { accountId, name: `Vendedor ${tag}`, email: `iso-${tag}-${run}@teste.tervian.dev` },
   });
   const pipeline = await prismaBase.pipeline.create({
     data: { accountId, name: `Comercial ${tag}` },

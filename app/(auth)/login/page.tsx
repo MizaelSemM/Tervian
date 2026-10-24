@@ -2,7 +2,7 @@ import { Suspense } from "react";
 
 import { LoginForm } from "./login-form";
 
-export const metadata = { title: "Entrar — MarcaAi" };
+export const metadata = { title: "Entrar — Tervian" };
 
 /**
  * Login (RF-01). Shell estático + formulário client suspenso (o formulário lê

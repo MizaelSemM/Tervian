@@ -1,4 +1,4 @@
-# MarcaAi — CRM de Follow-up
+# Tervian — CRM de Follow-up
 
 CRM de follow-up para pequenas equipes de vendas: o vendedor abre o app e sabe **quem chamar hoje e por quê**. O escopo completo está no [PRD](<./PRD – CRM de Follow-up para Pequenas Equipes de Vendas (MVP).md>) e o planejamento em [.notes/](./.notes/todo.md).
 
@@ -64,7 +64,7 @@ npm run db:studio    # Prisma Studio
 
 - **Cadastro** (`/cadastro`): cria a conta (empresa) + o primeiro usuário **Admin** — é o caminho oficial de entrada.
 - **Login** (`/login`) · **Recuperação** (`/esqueci-senha` → `/redefinir-senha`) · **Convites**: o Admin gera o link em `/equipe` e o convidado entra por `/convite/[token]`.
-- **Logins da demo** (depois de `npm run db:seed`): `ana@demo.marcaai.dev` (Admin) e `bruno@demo.marcaai.dev` (Vendedor) — senha `demo1234` (só demonstração local).
+- **Logins da demo** (depois de `npm run db:seed`): `ana@demo.tervian.dev` (Admin) e `bruno@demo.tervian.dev` (Vendedor) — senha `demo1234` (só demonstração local).
 - **Desativar** um usuário em `/equipe` derruba as sessões na hora, bloqueia login novo e não apaga histórico.
 - O `proxy.ts` faz só uma checagem **otimista** do cookie de sessão (menos latência); a validação real acontece em toda página/action via `requireAuth()`/`requireRole()` (`lib/session.ts`).
 - Fluxos com rate limit (login, cadastro, reset) passam pelo navegador em `/api/auth/*`; cadastro e convite são Server Actions (criam a conta no servidor).

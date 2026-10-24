@@ -6,7 +6,7 @@ import type { ActingUser } from "@/server/services/owners";
 
 import { QuickLeadForm } from "./quick-lead-form";
 
-export const metadata = { title: "Novo contato — MarcaAi" };
+export const metadata = { title: "Novo contato — Tervian" };
 
 /**
  * Captura rápida (US-03): nome + telefone. A página é o ponto de entrada

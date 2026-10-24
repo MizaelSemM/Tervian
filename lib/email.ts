@@ -15,16 +15,16 @@ export type EmailInput = {
   text: string;
 };
 
-const DEFAULT_FROM = "MarcaAi <nao-responda@marcaai.dev>";
+const DEFAULT_FROM = "Tervian <nao-responda@tervian.dev>";
 
 export function passwordResetEmail(input: { to: string; name: string; url: string }): EmailInput {
   return {
     to: input.to,
-    subject: "Redefinir sua senha — MarcaAi",
+    subject: "Redefinir sua senha — Tervian",
     text: [
       `Oi, ${input.name}!`,
       "",
-      "Recebemos um pedido para redefinir a senha da sua conta no MarcaAi.",
+      "Recebemos um pedido para redefinir a senha da sua conta no Tervian.",
       "Este link é de uso único e expira em 1 hora:",
       "",
       input.url,
@@ -43,9 +43,9 @@ export function inviteEmail(input: {
   const roleLabel = input.role === "ADMIN" ? "Administrador(a)" : "Vendedor(a)";
   return {
     to: input.to,
-    subject: `Convite para entrar em ${input.accountName} no MarcaAi`,
+    subject: `Convite para entrar em ${input.accountName} no Tervian`,
     text: [
-      `Você foi convidado(a) para entrar em ${input.accountName} no MarcaAi, como ${roleLabel}.`,
+      `Você foi convidado(a) para entrar em ${input.accountName} no Tervian, como ${roleLabel}.`,
       "",
       "Para aceitar, abra o link e crie sua senha:",
       "",

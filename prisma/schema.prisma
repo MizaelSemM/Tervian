@@ -1,4 +1,4 @@
-// Schema do MarcaAi — CRM de follow-up (ver .notes/002-modelo-de-dados.md)
+// Schema do Tervian — CRM de follow-up (ver .notes/002-modelo-de-dados.md)
 //
 // Convenções:
 // - Toda tabela de domínio tem account_id (isolamento multi-tenant — ver .notes/004).
@@ -356,7 +356,7 @@ model Session {
 
 /// Conta de credenciais do Better Auth (e-mail/senha hoje; OAuth no futuro).
 /// ATENÇÃO: `accountId` AQUI é o id do usuário NO PROVEDOR (Better Auth) — não é
-/// a conta/tenant do MarcaAi (essa é `User.accountId`). No Better Auth este model
+/// a conta/tenant do Tervian (essa é `User.accountId`). No Better Auth este model
 /// se chama "account"; em lib/auth.ts mapeamos para a propriedade `authAccount`.
 model AuthAccount {
   id                    String    @id @default(cuid())
