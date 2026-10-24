@@ -28,6 +28,12 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
             Tervian
           </Link>
           <Link
+            href="/negocios"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Negócios
+          </Link>
+          <Link
             href="/contatos"
             className="text-sm text-muted-foreground transition-colors hover:text-foreground"
           >

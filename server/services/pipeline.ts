@@ -24,8 +24,12 @@ const DEFAULT_STAGES = [
   { name: "Negociação", position: 4, probability: 75, cadenceDays: 2 },
 ] as const;
 
-export type StageRef = { id: string; name: string; position: number };
-export type DefaultPipeline = { pipelineId: string; newStage: StageRef };
+export type StageRef = { id: string; name: string; position: number; probability: number };
+export type DefaultPipeline = {
+  pipelineId: string;
+  newStage: StageRef;
+  stages: StageRef[];
+};
 
 async function seedStages(
   db: TenantClient,
@@ -46,7 +50,7 @@ async function seedStages(
         cadenceDays: stage.cadenceDays,
       },
       update: {},
-      select: { id: true, name: true, position: true },
+      select: { id: true, name: true, position: true, probability: true },
     });
     stages.push(row);
   }
@@ -62,7 +66,7 @@ async function seedPipeline(db: TenantClient, accountId: string): Promise<Defaul
   });
 
   const stages = await seedStages(db, accountId, pipelineId);
-  return { pipelineId, newStage: stages[0] };
+  return { pipelineId, newStage: stages[0], stages };
 }
 
 /**
@@ -91,7 +95,7 @@ export async function ensureDefaultPipeline(): Promise<DefaultPipeline> {
   let stages = await db.stage.findMany({
     where: { pipelineId: pipeline.id },
     orderBy: { position: "asc" },
-    select: { id: true, name: true, position: true },
+    select: { id: true, name: true, position: true, probability: true },
   });
   if (stages.length === 0) stages = await seedStages(db, accountId, pipeline.id);
 
@@ -100,5 +104,14 @@ export async function ensureDefaultPipeline(): Promise<DefaultPipeline> {
       (stage) => stage.name.trim().toLowerCase() === DEFAULT_NEW_STAGE_NAME.toLowerCase(),
     ) ?? stages[0];
 
-  return { pipelineId: pipeline.id, newStage };
+  return { pipelineId: pipeline.id, newStage, stages };
+}
+
+/**
+ * Etapas do funil atual, em ordem. A 006 usa no kanban; a 011 vai usar para
+ * valor/previsão por etapa.
+ */
+export async function getPipelineStages(): Promise<StageRef[]> {
+  const { stages } = await ensureDefaultPipeline();
+  return stages;
 }

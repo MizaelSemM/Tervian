@@ -4,6 +4,7 @@ import { prismaBase } from "@/lib/prisma";
 import type { SignUpCompanyInput } from "@/lib/schemas/auth";
 import { isAlreadyExistsError } from "@/server/auth-errors";
 import { AppError } from "@/server/errors";
+import { createDefaultLostReasonsForAccount } from "@/server/services/lost-reasons";
 import { createDefaultPipelineForAccount } from "@/server/services/pipeline";
 
 /**
@@ -12,7 +13,7 @@ import { createDefaultPipelineForAccount } from "@/server/services/pipeline";
  * Fluxo:
  *  1. e-mail não pode existir (checagem antecipada para não criar conta em vão);
  *  2. cria o `Account`;
- *  3. cria o funil padrão (RF-20; ver server/services/pipeline.ts);
+ *  3. cria o funil padrão (RF-20) e os motivos de perda (RF-23);
  *  4. cria o usuário via Better Auth DENTRO do contexto de cadastro — o hook
  *     `user.create.before` (lib/auth.ts) injeta `accountId` + `role: ADMIN`;
  *  5. qualquer falha remove tudo que foi criado (rollback compensatório).
@@ -37,6 +38,7 @@ export async function signUpCompany(
 
   try {
     await createDefaultPipelineForAccount(account.id);
+    await createDefaultLostReasonsForAccount(account.id);
 
     const result = await runWithSignupContext({ accountId: account.id, role: "ADMIN" }, () =>
       auth.api.signUpEmail({
@@ -69,6 +71,7 @@ export async function signUpCompany(
 async function rollbackAccount(accountId: string): Promise<void> {
   try {
     await prismaBase.$transaction(async (tx) => {
+      await tx.lostReason.deleteMany({ where: { accountId } });
       await tx.stage.deleteMany({ where: { accountId } });
       await tx.pipeline.deleteMany({ where: { accountId } });
       await tx.user.deleteMany({ where: { accountId } });

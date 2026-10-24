@@ -8,8 +8,8 @@ import { formatPhoneBR, whatsappLinkBR } from "@/lib/phone";
 import { CONTACT_ORIGIN_LABELS, type ContactOrigin } from "@/lib/schemas/contact";
 import { withSession, type AuthedSession } from "@/lib/session";
 import { formatCurrencyBR, formatDateBR } from "@/lib/utils";
-import { getContact, listOwnerOptions } from "@/server/services/contacts";
-import type { ActingUser } from "@/server/services/owners";
+import { getContact } from "@/server/services/contacts";
+import { listOwnerOptions, type ActingUser } from "@/server/services/owners";
 
 import { ContactPanel } from "./contact-panel";
 
@@ -124,10 +124,20 @@ export default async function ContactDetailPage({
 
           <Card>
             <CardHeader>
-              <CardTitle>Negócios</CardTitle>
-              <CardDescription>
-                Tudo que está (ou já foi) negociado com esta pessoa.
-              </CardDescription>
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <CardTitle>Negócios</CardTitle>
+                  <CardDescription>
+                    Tudo que está (ou já foi) negociado com esta pessoa.
+                  </CardDescription>
+                </div>
+                <Link
+                  href={`/negocios/novo?contactId=${contact.id}`}
+                  className={buttonVariants({ variant: "outline", size: "sm" })}
+                >
+                  Novo negócio
+                </Link>
+              </div>
             </CardHeader>
             <CardContent>
               {contact.deals.length === 0 ? (
@@ -139,7 +149,12 @@ export default async function ContactDetailPage({
                   {contact.deals.map((deal) => (
                     <li key={deal.id} className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0">
                       <div className="flex items-center justify-between gap-2">
-                        <p className="min-w-0 truncate text-sm font-medium">{deal.title}</p>
+                        <Link
+                          href={`/negocios/${deal.id}`}
+                          className="min-w-0 truncate text-sm font-medium hover:underline"
+                        >
+                          {deal.title}
+                        </Link>
                         <Badge
                           variant={deal.status === "OPEN" ? "secondary" : "outline"}
                           className={

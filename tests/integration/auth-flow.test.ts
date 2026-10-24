@@ -48,6 +48,7 @@ describe("auth: cadastro, convites e equipe (integração)", () => {
     try {
       if (accountIds.length > 0) {
         // Cascatas: sessões, credenciais e convites (createdBy) caem com o usuário.
+        await prismaBase.lostReason.deleteMany({ where: { accountId: { in: accountIds } } });
         await prismaBase.stage.deleteMany({ where: { accountId: { in: accountIds } } });
         await prismaBase.pipeline.deleteMany({ where: { accountId: { in: accountIds } } });
         await prismaBase.user.deleteMany({ where: { accountId: { in: accountIds } } });

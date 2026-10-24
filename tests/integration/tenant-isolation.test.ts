@@ -93,6 +93,7 @@ describe("isolamento multi-tenant (integração)", () => {
         await prismaBase.task.deleteMany({ where: { accountId: { in: ids } } });
         await prismaBase.deal.deleteMany({ where: { accountId: { in: ids } } });
         await prismaBase.contact.deleteMany({ where: { accountId: { in: ids } } });
+        await prismaBase.lostReason.deleteMany({ where: { accountId: { in: ids } } });
         await prismaBase.stage.deleteMany({ where: { accountId: { in: ids } } });
         await prismaBase.pipeline.deleteMany({ where: { accountId: { in: ids } } });
         await prismaBase.user.deleteMany({ where: { accountId: { in: ids } } });

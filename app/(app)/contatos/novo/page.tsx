@@ -1,8 +1,7 @@
 import Link from "next/link";
 
 import { withSession } from "@/lib/session";
-import { listOwnerOptions } from "@/server/services/contacts";
-import type { ActingUser } from "@/server/services/owners";
+import { listOwnerOptions, type ActingUser } from "@/server/services/owners";
 
 import { QuickLeadForm } from "./quick-lead-form";
 

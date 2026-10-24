@@ -30,6 +30,9 @@ export default async function HomePage() {
           <Link href="/contatos" className={buttonVariants({ variant: "outline" })}>
             Ver contatos
           </Link>
+          <Link href="/negocios" className={buttonVariants({ variant: "outline" })}>
+            Ver funil
+          </Link>
         </CardContent>
       </Card>
 
@@ -37,7 +40,8 @@ export default async function HomePage() {
         <CardHeader>
           <CardTitle>Em breve</CardTitle>
           <CardDescription>
-            Funil kanban, tela “Hoje” com quem chamar e por quê, e follow-up automático por etapa.
+            Tela “Hoje” com quem chamar e por quê, follow-up automático por etapa e busca na
+            linha do tempo.
           </CardDescription>
         </CardHeader>
       </Card>

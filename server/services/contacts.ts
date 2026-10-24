@@ -358,24 +358,3 @@ export async function softDeleteContact(input: {
     });
   });
 }
-
-/** Responsáveis possíveis no formulário: ADMIN vê a equipe ativa; vendedor, só ele. */
-export async function listOwnerOptions(
-  actingUser: ActingUser,
-): Promise<Array<{ id: string; name: string }>> {
-  const db = tenantDb();
-
-  if (actingUser.role !== "ADMIN") {
-    const self = await db.user.findFirst({
-      where: { id: actingUser.id, active: true },
-      select: { id: true, name: true },
-    });
-    return self ? [self] : [];
-  }
-
-  return db.user.findMany({
-    where: { active: true },
-    orderBy: { name: "asc" },
-    select: { id: true, name: true },
-  });
-}
