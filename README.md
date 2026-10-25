@@ -91,6 +91,24 @@ e2e/          testes ponta a ponta (Playwright)
 .notes/       planejamento, decisões e backlog
 ```
 
+## Fluxo de trabalho (branches e PRs)
+
+Cada tarefa sai de uma branch criada a partir do `master` atualizado e entra por PR:
+
+```bash
+git switch master
+git pull --ff-only
+git switch -c 007-motor-followup
+# ... implementa e testa ...
+git push -u origin 007-motor-followup
+```
+
+- **Nome da branch:** `NNN-slug-curto` para tarefas (ex.: `007-motor-followup`) e `chore/slug` para manutenção.
+- **PR para `master`:** o CI roda formatação, lint, typecheck, testes e build em todo PR. Use o template em `.github/pull_request_template.md`.
+- **Checkpoint revisável:** descreva o que mudou, como testar e anexe evidências de UI. Merge só com CI verde; depois apague a branch.
+- **Tarefas empilhadas:** se a próxima depender de uma branch ainda aberta, baseie-a nela e mergeie na ordem.
+- **Sem push direto no `master`:** mesmo hotfix urgente passa por um PR curto.
+
 ## Convenções (valem para todo PR)
 
 1. **Validação em um só lugar:** toda entrada (formulário, Server Action, CSV, formulário público) é validada com os schemas de `lib/schemas/` no servidor.

@@ -40,8 +40,8 @@ export default async function HomePage() {
         <CardHeader>
           <CardTitle>Em breve</CardTitle>
           <CardDescription>
-            Tela “Hoje” com quem chamar e por quê, follow-up automático por etapa e busca na
-            linha do tempo.
+            Tela “Hoje” com quem chamar e por quê, follow-up automático por etapa e busca na linha
+            do tempo.
           </CardDescription>
         </CardHeader>
       </Card>

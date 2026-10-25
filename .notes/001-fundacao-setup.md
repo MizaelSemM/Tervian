@@ -26,7 +26,8 @@
 - [ ] Projeto na **Vercel** ligado ao repositório
 - [ ] **Preview por pull request** apontando para branch de banco de dev
 - [ ] Migrations aplicadas no deploy (script de build ou job dedicado)
-- [ ] Branch principal + regra de PR (mesmo trabalhando sozinho: PR = checkpoint revisável)
+- [x] Fluxo de PR documentado (`README` + `AGENTS.md`) e template em `.github/pull_request_template.md`
+- [ ] Ativar a proteção da branch `master` no GitHub (Settings → Branches: exigir PR e CI verde)
 
 ## Observabilidade desde o dia 1 (mínimo)
 
