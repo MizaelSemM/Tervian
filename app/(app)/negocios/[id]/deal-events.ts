@@ -1,4 +1,5 @@
 import { formatCurrencyBR } from "@/lib/utils";
+import { TASK_RESULT_LABELS } from "@/lib/schemas/deal";
 
 /**
  * Descrição curta de um evento da timeline (006).
@@ -60,7 +61,12 @@ export function describeDealEvent(type: string, payload: unknown): string {
     }
     case "task.completed": {
       const title = text(data, "title");
-      return title ? `Tarefa concluída: ${title}.` : "Tarefa concluída.";
+      const result = text(data, "result");
+      const resultLabel = result ? (TASK_RESULT_LABELS as Record<string, string>)[result] : null;
+      if (!title) return "Tarefa concluída.";
+      return resultLabel
+        ? `Tarefa concluída: ${title} (${resultLabel}).`
+        : `Tarefa concluída: ${title}.`;
     }
     case "note.added":
       return "Nota adicionada.";

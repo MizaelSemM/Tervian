@@ -1,9 +1,8 @@
 import { ownerScope } from "@/lib/access";
 import { trackEvent } from "@/lib/analytics";
 import { Prisma } from "@/lib/generated/prisma/client";
-import { dateKeyBR, parseDateKeyBR, todayDateKeyBR } from "@/lib/utils";
 import { requireTenantContext } from "@/lib/tenant-context";
-import { tenantDb } from "@/lib/tenant-prisma";
+import { tenantDb, type TenantTransactionClient } from "@/lib/tenant-prisma";
 import { AppError } from "@/server/errors";
 import { ensureDefaultLostReasons } from "@/server/services/lost-reasons";
 import { resolveOwnerId, type ActingUser } from "@/server/services/owners";
@@ -137,13 +136,6 @@ function toCard(row: Prisma.DealGetPayload<{ select: typeof cardSelect }>): Deal
 function ownerFilter(actingUser: ActingUser, requestedOwnerId?: string): { ownerId?: string } {
   if (actingUser.role !== "ADMIN" || !requestedOwnerId) return {};
   return { ownerId: requestedOwnerId };
-}
-
-function addDaysToDateKey(key: string, days: number): string {
-  const [year, month, day] = key.split("-").map(Number);
-  const date = new Date(Date.UTC(year, month - 1, day));
-  date.setUTCDate(date.getUTCDate() + days);
-  return date.toISOString().slice(0, 10);
 }
 
 /**
@@ -670,121 +662,6 @@ export async function moveDeal(
   return { contactId: deal.contactId, stageId: target.id, changed: true };
 }
 
-export type ScheduleNextActionInput = {
-  id: string;
-  actingUser: ActingUser;
-  dueAt: Date;
-  title?: string;
-};
-
-/**
- * Cria/atualiza a próxima ação e mantém `deals.next_action_at` sincronizado.
- * É o embrião do `scheduleNextAction()` que a 007 vai completar.
- */
-export async function scheduleNextAction(
-  input: ScheduleNextActionInput,
-): Promise<{ taskId: string; contactId: string }> {
-  const db = tenantDb();
-  const accountId = requireTenantContext().accountId;
-
-  const deal = await db.deal.findFirst({
-    where: { id: input.id, deletedAt: null, ...ownerScope(input.actingUser) },
-    select: {
-      id: true,
-      title: true,
-      ownerId: true,
-      status: true,
-      nextActionAt: true,
-      contactId: true,
-    },
-  });
-  if (!deal) {
-    throw new AppError("DEAL_NOT_FOUND", "Negócio não encontrado nesta conta.");
-  }
-  if (deal.status !== "OPEN") {
-    throw new AppError("DEAL_CLOSED", "Negócio fechado não recebe nova ação.");
-  }
-
-  const openTask = await db.task.findFirst({
-    where: { dealId: deal.id, completedAt: null },
-    orderBy: { dueAt: "asc" },
-    select: { id: true },
-  });
-
-  const now = new Date();
-  const title = input.title?.trim() || "Follow-up";
-
-  const taskId = await db.$transaction(async (tx) => {
-    let id = openTask?.id;
-    if (id) {
-      await tx.task.update({
-        where: { id },
-        data: { dueAt: input.dueAt, title },
-      });
-    } else {
-      const task = await tx.task.create({
-        data: {
-          accountId,
-          dealId: deal.id,
-          ownerId: deal.ownerId,
-          type: "OTHER",
-          title,
-          dueAt: input.dueAt,
-        },
-        select: { id: true },
-      });
-      id = task.id;
-    }
-
-    await tx.deal.update({
-      where: { id: deal.id },
-      data: { nextActionAt: input.dueAt, lastActivityAt: now },
-    });
-
-    await tx.timelineEvent.create({
-      data: {
-        accountId,
-        type: "deal.next_action_changed",
-        payload: {
-          from: deal.nextActionAt?.toISOString() ?? null,
-          to: input.dueAt.toISOString(),
-        },
-        dealId: deal.id,
-        contactId: deal.contactId,
-        actorId: input.actingUser.id,
-      },
-    });
-
-    return id;
-  });
-
-  return { taskId, contactId: deal.contactId };
-}
-
-/** Adia a próxima ação em 1 dia (atalho da tela do negócio). */
-export async function deferDealNextAction(input: {
-  id: string;
-  actingUser: ActingUser;
-}): Promise<{ oldDate: string | null; newDate: string; contactId: string }> {
-  const deal = await tenantDb().deal.findFirst({
-    where: { id: input.id, deletedAt: null, ...ownerScope(input.actingUser) },
-    select: { nextActionAt: true, contactId: true },
-  });
-  if (!deal) {
-    throw new AppError("DEAL_NOT_FOUND", "Negócio não encontrado nesta conta.");
-  }
-
-  const oldDate = dateKeyBR(deal.nextActionAt) || null;
-  const newDate = addDaysToDateKey(oldDate ?? todayDateKeyBR(), 1);
-  const dueAt = parseDateKeyBR(newDate);
-  if (!dueAt) {
-    throw new AppError("DEAL_DATE_INVALID", "Data inválida para adiar a ação.");
-  }
-
-  const result = await scheduleNextAction({ id: input.id, actingUser: input.actingUser, dueAt });
-  return { oldDate, newDate, contactId: result.contactId };
-}
-
 export type CloseDealInput = {
   id: string;
   actingUser: ActingUser;
@@ -793,6 +670,103 @@ export type CloseDealInput = {
   lostReasonId?: string | null;
   lostNote?: string | null;
 };
+
+type ApplyDealCloseInput = {
+  accountId: string;
+  actorId: string;
+  deal: { id: string; value: Prisma.Decimal | null; contactId: string };
+  status: "WON" | "LOST";
+  value?: number | null;
+  lostReasonId?: string | null;
+  lostNote?: string | null;
+  now: Date;
+  /** Tarefa que acabou de ser concluída e deve sobreviver ao fechamento. */
+  keepTaskId?: string;
+};
+
+/**
+ * Fechamento transacional, compartilhado entre o detalhe do negócio e a
+ * conclusão de tarefa da tela "Hoje" (007). O chamador já validou o dono/status
+ * do negócio; aqui validamos valor final/motivo e limpamos as tarefas abertas.
+ */
+export async function applyDealCloseInTransaction(
+  tx: TenantTransactionClient,
+  input: ApplyDealCloseInput,
+): Promise<{ contactId: string; finalValue: number | null }> {
+  const lostNote = input.lostNote?.trim() || null;
+  let finalValue: number | null = null;
+  let lostReasonName: string | null = null;
+
+  if (input.status === "WON") {
+    finalValue = input.value ?? toNumber(input.deal.value);
+    if (finalValue === null) {
+      throw new AppError(
+        "DEAL_VALUE_REQUIRED",
+        "Confirme o valor final para marcar o negócio como ganho.",
+      );
+    }
+  } else {
+    if (!input.lostReasonId) {
+      throw new AppError("DEAL_LOST_REASON_REQUIRED", "Escolha o motivo da perda.");
+    }
+    const lostReason = await tx.lostReason.findFirst({
+      where: { id: input.lostReasonId, active: true, accountId: input.accountId },
+      select: { id: true, name: true },
+    });
+    if (!lostReason) {
+      throw new AppError("DEAL_LOST_REASON_INVALID", "Motivo de perda inválido para esta conta.");
+    }
+    lostReasonName = lostReason.name;
+  }
+
+  await tx.deal.update({
+    where: { id: input.deal.id },
+    data:
+      input.status === "WON"
+        ? {
+            status: "WON",
+            value: finalValue,
+            closedAt: input.now,
+            nextActionAt: null,
+            lostReasonId: null,
+            lostNote: null,
+            lastActivityAt: input.now,
+          }
+        : {
+            status: "LOST",
+            closedAt: input.now,
+            nextActionAt: null,
+            lostReasonId: input.lostReasonId,
+            lostNote,
+            lastActivityAt: input.now,
+          },
+  });
+
+  await tx.task.deleteMany({
+    where: {
+      accountId: input.accountId,
+      dealId: input.deal.id,
+      completedAt: null,
+      ...(input.keepTaskId ? { id: { not: input.keepTaskId } } : {}),
+    },
+  });
+
+  await tx.timelineEvent.create({
+    data: {
+      accountId: input.accountId,
+      type: "deal.closed",
+      payload:
+        input.status === "WON"
+          ? { status: "WON", value: finalValue }
+          : { status: "LOST", reason: lostReasonName, note: lostNote },
+      dealId: input.deal.id,
+      contactId: input.deal.contactId,
+      actorId: input.actorId,
+    },
+  });
+
+  return { contactId: input.deal.contactId, finalValue };
+}
 
 /** Fecha como ganho (valor final) ou perdido (motivo obrigatório). */
 export async function closeDeal(input: CloseDealInput): Promise<{ contactId: string }> {
@@ -803,7 +777,6 @@ export async function closeDeal(input: CloseDealInput): Promise<{ contactId: str
     where: { id: input.id, deletedAt: null, ...ownerScope(input.actingUser) },
     select: {
       id: true,
-      title: true,
       value: true,
       status: true,
       contactId: true,
@@ -816,95 +789,27 @@ export async function closeDeal(input: CloseDealInput): Promise<{ contactId: str
     throw new AppError("DEAL_ALREADY_CLOSED", "Este negócio já está fechado.");
   }
 
+  if (input.status === "LOST") await ensureDefaultLostReasons();
+
   const now = new Date();
-  const lostNote = input.lostNote?.trim() || null;
+  const result = await db.$transaction((tx) =>
+    applyDealCloseInTransaction(tx, {
+      accountId,
+      actorId: input.actingUser.id,
+      deal,
+      status: input.status,
+      value: input.value,
+      lostReasonId: input.lostReasonId,
+      lostNote: input.lostNote,
+      now,
+    }),
+  );
 
   if (input.status === "WON") {
-    const previousValue = toNumber(deal.value);
-    const finalValue = input.value ?? previousValue;
-    if (finalValue === null) {
-      throw new AppError(
-        "DEAL_VALUE_REQUIRED",
-        "Confirme o valor final para marcar o negócio como ganho.",
-      );
-    }
-
-    await db.$transaction(async (tx) => {
-      await tx.deal.update({
-        where: { id: deal.id },
-        data: {
-          status: "WON",
-          value: finalValue,
-          closedAt: now,
-          nextActionAt: null,
-          lostReasonId: null,
-          lostNote: null,
-          lastActivityAt: now,
-        },
-      });
-
-      await tx.task.deleteMany({
-        where: { dealId: deal.id, completedAt: null },
-      });
-
-      await tx.timelineEvent.create({
-        data: {
-          accountId,
-          type: "deal.closed",
-          payload: { status: "WON", value: finalValue },
-          dealId: deal.id,
-          contactId: deal.contactId,
-          actorId: input.actingUser.id,
-        },
-      });
-    });
-
-    trackEvent("deal_closed", { status: "WON", value: finalValue });
-    return { contactId: deal.contactId };
+    trackEvent("deal_closed", { status: "WON", value: result.finalValue });
+  } else {
+    trackEvent("deal_closed", { status: "LOST", has_note: Boolean(input.lostNote?.trim()) });
   }
 
-  if (!input.lostReasonId) {
-    throw new AppError("DEAL_LOST_REASON_REQUIRED", "Escolha o motivo da perda.");
-  }
-
-  await ensureDefaultLostReasons();
-  const lostReason = await db.lostReason.findFirst({
-    where: { id: input.lostReasonId, active: true },
-    select: { id: true, name: true },
-  });
-  if (!lostReason) {
-    throw new AppError("DEAL_LOST_REASON_INVALID", "Motivo de perda inválido para esta conta.");
-  }
-
-  await db.$transaction(async (tx) => {
-    await tx.deal.update({
-      where: { id: deal.id },
-      data: {
-        status: "LOST",
-        closedAt: now,
-        nextActionAt: null,
-        lostReasonId: lostReason.id,
-        lostNote,
-        lastActivityAt: now,
-      },
-    });
-
-    await tx.task.deleteMany({
-      where: { dealId: deal.id, completedAt: null },
-    });
-
-    await tx.timelineEvent.create({
-      data: {
-        accountId,
-        type: "deal.closed",
-        payload: { status: "LOST", reason: lostReason.name, note: lostNote },
-        dealId: deal.id,
-        contactId: deal.contactId,
-        actorId: input.actingUser.id,
-      },
-    });
-  });
-
-  trackEvent("deal_closed", { status: "LOST", has_note: lostNote !== null });
-  return { contactId: deal.contactId };
+  return { contactId: result.contactId };
 }

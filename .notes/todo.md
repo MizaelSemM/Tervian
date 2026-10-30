@@ -1,7 +1,7 @@
 # ✅ TODO — CRM de Follow-up para Pequenas Equipes de Vendas (MVP)
 
 **Fonte:** [PRD – CRM de Follow-up para Pequenas Equipes de Vendas (MVP)](<../PRD – CRM de Follow-up para Pequenas Equipes de Vendas (MVP).md>)
-**Atualizado em:** 24/10/2026 · **Fase atual:** 2 — CRM essencial · **Prazo recalibrado: ~6–8 semanas** (ritmo ~20–25h/semana)
+**Atualizado em:** 30/10/2026 · **Fase atual:** 2 — CRM essencial · **Prazo recalibrado: ~6–8 semanas** (ritmo ~20–25h/semana)
 
 ---
 
@@ -36,7 +36,7 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
   - [ ] Vercel + Sentry + PostHog → **precisam das contas do dono**
   - [ ] Resend → conta + domínio verificado para e-mails reais de convite/reset (em dev o link cai no console)
 
-> ✅ **006 concluída** (funil/kanban dnd-kit, lista mobile, negócios com próxima ação, fechamento ganho/perdido, timeline/tarefas/notas e isolamento por responsável; 105 testes verdes). Próxima de código: **007 · Motor de follow-up + tela "Hoje"**.
+> ✅ **007 concluída** (motor de follow-up, tela “Hoje” em `/` → `/hoje`, conclusão em 2 toques, contadores, filtro por vendedor, fuso da conta, follow-up transacional e fechamento preservando a tarefa concluída; 27 testes novos, 132 verdes). Próxima de código: **008 · Histórico, notas e busca global**.
 > Migrations no Supabase: usar `npm run db:migrate` (create-only + deploy) — o pooler não suporta o shadow database do `migrate dev` (ver 002).
 
 ---
@@ -50,7 +50,7 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
 
 ### Bloco 4 — Diferencial do produto ⭐ *(semana 3–5)*
 
-- [ ] **007 · Motor de follow-up + tela "Hoje"** (RF-30..RF-32, US-01, US-02) → [007-motor-followup-tela-hoje.md](007-motor-followup-tela-hoje.md)
+- [x] **007 · Motor de follow-up + tela "Hoje"** (RF-30..RF-32, US-01, US-02) → [007-motor-followup-tela-hoje.md](007-motor-followup-tela-hoje.md)
 
 ### Bloco 5 — Contexto e entradas *(semana 5)*
 
@@ -90,6 +90,7 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
 - [x] 17/10/2026 — **003 · Auth, contas, papéis e convites concluída**: Better Auth 1.7.10 (sessão em cookie, scrypt, rate limit), cadastro cria conta + Admin, convites com link copiável e uso único, reset de senha ponta a ponta, `/equipe` com desativar/reativar, proxy otimista + `requireAuth`/`requireRole` — 25 testes novos (53 verdes no total), build Cache Components ✓
 - [x] 23/10/2026 — **005 · Contatos e captura rápida concluída**: `createLead()` transacional (contato + negócio “Novo” + tarefa “Primeiro contato” para hoje + timeline), funil padrão criado no cadastro e garantido para contas antigas, `/contatos` com busca/paginação, edição, exclusão lógica com limpeza de negócios abertos e WhatsApp/ligar em lista e detalhe — 21 testes novos (74 verdes no total), build/lint/typecheck ✓
 - [x] 24/10/2026 — **006 · Funil e negócios concluída**: kanban com dnd-kit + Server Action otimista, lista mobile/paginada e alternador de visão, cards com valor/contato/responsável/previsão/dias sem atividade/próxima ação, mover etapa com timeline e próxima ação obrigatória, fechamento ganho (valor final) e perdido (motivo obrigatório), detalhe com timeline/tarefas/notas e “Adiar 1 dia” com desfazer, isolamento de vendedor na query — 31 testes novos (105 verdes no total), typecheck/lint/build e verificação manual em produção ✓
+- [x] 30/10/2026 — **007 · Motor de follow-up + tela “Hoje” concluída**: raiz do app vira a fila do dia, fuso da conta (com horário de verão), atrasadas/hoje/concluídas, WhatsApp/ligar/concluir com alvos grandes, resultado + próxima ação em 2 toques, conclusão otimista, filtro por vendedor para admin, follow-up transacional e fechamento ganho/perdido preservando a tarefa concluída — 27 testes novos (132 verdes no total), “Hoje” com 200 tarefas em < 2s, typecheck/lint/build ✓
 
 ---
 
