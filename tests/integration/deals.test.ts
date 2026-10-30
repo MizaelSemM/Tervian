@@ -12,14 +12,13 @@ import { calendarDaysBetween, dateKeyBR } from "@/lib/utils";
 import {
   closeDeal,
   createDeal,
-  deferDealNextAction,
   getDeal,
   listDealBoard,
   listDeals,
   moveDeal,
-  scheduleNextAction,
   updateDeal,
 } from "@/server/services/deals";
+import { deferDealNextAction, scheduleNextAction } from "@/server/services/followup";
 import { listLostReasons } from "@/server/services/lost-reasons";
 import { ensureDefaultPipeline, type StageRef } from "@/server/services/pipeline";
 

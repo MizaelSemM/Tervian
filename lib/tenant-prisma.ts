@@ -197,6 +197,12 @@ export function createTenantClient(accountId: string) {
 
 export type TenantClient = ReturnType<typeof createTenantClient>;
 
+/** Client dentro de `$transaction` (mesmas extensões, sem a API de conexão). */
+export type TenantTransactionClient = Omit<
+  TenantClient,
+  "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
+>;
+
 // Um client estendido por contexto de request (o contexto é criado por request,
 // então o cache morre junto com ele).
 const clientCache = new WeakMap<TenantContext, TenantClient>();

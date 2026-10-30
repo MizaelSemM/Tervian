@@ -13,14 +13,8 @@ import {
 import { withSession, type AuthedSession } from "@/lib/session";
 import { parseDateKeyBR } from "@/lib/utils";
 import { AppError } from "@/server/errors";
-import {
-  closeDeal,
-  createDeal,
-  deferDealNextAction,
-  moveDeal,
-  scheduleNextAction,
-  updateDeal,
-} from "@/server/services/deals";
+import { closeDeal, createDeal, moveDeal, updateDeal } from "@/server/services/deals";
+import { deferDealNextAction, scheduleNextAction } from "@/server/services/followup";
 import type { ActingUser } from "@/server/services/owners";
 
 /**
