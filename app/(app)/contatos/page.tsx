@@ -66,9 +66,17 @@ export default async function ContactsPage({
               Quem você atende, com WhatsApp e telefone a um toque.
             </p>
           </div>
-          <Link href="/contatos/novo" className={buttonVariants({ size: "lg" })}>
-            Novo contato
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/contatos/novo" className={buttonVariants({ size: "lg" })}>
+              Novo contato
+            </Link>
+            <Link
+              href="/contatos/importar"
+              className={buttonVariants({ variant: "outline", size: "lg" })}
+            >
+              Importar CSV
+            </Link>
+          </div>
         </div>
 
         {novo && (
