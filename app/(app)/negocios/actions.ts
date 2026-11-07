@@ -15,6 +15,7 @@ import { parseDateKeyBR } from "@/lib/utils";
 import { AppError } from "@/server/errors";
 import { closeDeal, createDeal, moveDeal, updateDeal } from "@/server/services/deals";
 import { deferDealNextAction, scheduleNextAction } from "@/server/services/followup";
+import { createNote, deleteNote, updateNote } from "@/server/services/notes";
 import type { ActingUser } from "@/server/services/owners";
 
 /**
@@ -220,5 +221,76 @@ export async function closeDealAction(
 
     revalidateDealPaths(parsed.data.id, result.contactId);
     redirect(`/negocios/${parsed.data.id}?fechado=${parsed.data.status.toLowerCase()}`);
+  });
+}
+
+export async function createDealNoteAction(
+  _previous: DealFormState,
+  formData: FormData,
+): Promise<DealFormState> {
+  return withSession(async (session) => {
+    const dealId = String(formData.get("dealId") ?? "").trim();
+    const text = String(formData.get("text") ?? "");
+    if (!dealId) return { error: "Negócio inválido." };
+
+    try {
+      await createNote({
+        actingUser: actingUserFrom(session),
+        dealId,
+        text,
+      });
+    } catch (error) {
+      if (error instanceof AppError) return { error: error.message };
+      console.error("[negocios] Erro ao criar nota:", error);
+      return { error: GENERIC_ERROR };
+    }
+
+    revalidatePath(`/negocios/${dealId}`);
+    return null;
+  });
+}
+
+export async function deleteDealNoteAction(
+  noteId: string,
+  dealId: string,
+): Promise<ResultActionState> {
+  return withSession(async (session) => {
+    try {
+      await deleteNote({ id: noteId, actingUser: actingUserFrom(session) });
+    } catch (error) {
+      if (error instanceof AppError) return { ok: false, error: error.message };
+      console.error("[negocios] Erro ao excluir nota:", error);
+      return { ok: false, error: GENERIC_ERROR };
+    }
+
+    revalidatePath(`/negocios/${dealId}`);
+    return { ok: true };
+  });
+}
+
+export async function updateDealNoteAction(
+  _previous: DealFormState,
+  formData: FormData,
+): Promise<DealFormState> {
+  return withSession(async (session) => {
+    const noteId = String(formData.get("noteId") ?? "").trim();
+    const dealId = String(formData.get("dealId") ?? "").trim();
+    const text = String(formData.get("text") ?? "");
+    if (!noteId || !dealId) return { error: "Nota inválida." };
+
+    try {
+      await updateNote({
+        id: noteId,
+        actingUser: actingUserFrom(session),
+        text,
+      });
+    } catch (error) {
+      if (error instanceof AppError) return { error: error.message };
+      console.error("[negocios] Erro ao editar nota:", error);
+      return { error: GENERIC_ERROR };
+    }
+
+    revalidatePath(`/negocios/${dealId}`);
+    return null;
   });
 }

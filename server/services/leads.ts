@@ -7,6 +7,7 @@ import { tenantDb } from "@/lib/tenant-prisma";
 import { AppError } from "@/server/errors";
 import { resolveOwnerId, type ActingUser } from "@/server/services/owners";
 import { ensureDefaultPipeline } from "@/server/services/pipeline";
+import { logEvent } from "@/server/services/timeline";
 
 /**
  * Captura de lead — serviço único da tarefa 005 (US-03).
@@ -147,15 +148,13 @@ export async function createLead(input: CreateLeadInput): Promise<CreateLeadResu
         select: { id: true },
       });
 
-      await tx.timelineEvent.create({
-        data: {
-          accountId,
-          type: "deal.created",
-          payload: { title: name, stage: newStage.name, source },
-          dealId: deal.id,
-          contactId: contact.id,
-          actorId: input.actingUser.id,
-        },
+      await logEvent({
+        type: "deal.created",
+        payload: { title: name, stage: newStage.name, source },
+        dealId: deal.id,
+        contactId: contact.id,
+        actorId: input.actingUser.id,
+        client: tx,
       });
 
       return { contactId: contact.id, dealId: deal.id, taskId: task.id };

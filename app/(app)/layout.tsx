@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { requireAuth } from "@/lib/session";
 
 import { SignOutButton } from "./sign-out-button";
+import { GlobalSearch } from "./global-search";
 
 /**
  * Área logada (tarefa 003).
@@ -55,6 +56,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           )}
         </div>
         <div className="flex items-center gap-3">
+          <GlobalSearch />
           <div className="text-right leading-tight">
             <p className="text-sm font-medium">{firstName}</p>
             <p className="text-xs text-muted-foreground">{roleLabel}</p>

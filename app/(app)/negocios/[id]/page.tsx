@@ -9,6 +9,7 @@ import { DEAL_STATUS_LABELS } from "@/lib/schemas/deal";
 import { withSession } from "@/lib/session";
 import { daysSinceBR, formatCurrencyBR, formatDateBR, nextActionLabelBR } from "@/lib/utils";
 import { getDeal } from "@/server/services/deals";
+import { getAccountTimeZone } from "@/server/services/followup";
 import { listLostReasons } from "@/server/services/lost-reasons";
 import { listOwnerOptions, type ActingUser } from "@/server/services/owners";
 import { getPipelineStages } from "@/server/services/pipeline";
@@ -61,10 +62,11 @@ export default async function DealDetailPage({
     if (!deal) notFound();
 
     const isOpen = deal.status === "OPEN";
-    const [stages, owners, lostReasons] = await Promise.all([
+    const [stages, owners, lostReasons, timeZone] = await Promise.all([
       getPipelineStages(),
       listOwnerOptions(actingUser),
       isOpen ? listLostReasons() : Promise.resolve([]),
+      getAccountTimeZone(),
     ]);
 
     const whatsapp = whatsappLinkBR(deal.contact.phone);
@@ -211,8 +213,8 @@ export default async function DealDetailPage({
               company={deal.contactCompany}
             />
             <DealTasksCard tasks={deal.tasks} />
-            <DealTimelineCard events={deal.timeline} />
-            <DealNotesCard notes={deal.notes} />
+            <DealTimelineCard events={deal.timeline} timeZone={timeZone} />
+            <DealNotesCard notes={deal.notes} dealId={deal.id} />
           </div>
         </div>
       </div>

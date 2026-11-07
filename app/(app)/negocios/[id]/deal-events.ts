@@ -26,7 +26,7 @@ const FIELD_LABELS: Record<string, string> = {
   expectedCloseAt: "previsão de fechamento",
 };
 
-export function describeDealEvent(type: string, payload: unknown): string {
+export function describeTimelineEvent(type: string, payload: unknown): string {
   const data = asRecord(payload);
 
   switch (type) {
@@ -70,9 +70,15 @@ export function describeDealEvent(type: string, payload: unknown): string {
     }
     case "note.added":
       return "Nota adicionada.";
+    case "note.updated":
+      return "Nota editada.";
+    case "note.deleted":
+      return "Nota removida.";
     case "deal.deleted":
       return "Negócio removido do funil.";
     default:
       return `Evento: ${type}.`;
   }
 }
+
+export const describeDealEvent = describeTimelineEvent;

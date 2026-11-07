@@ -11,6 +11,7 @@ import {
 import { withSession, type AuthedSession } from "@/lib/session";
 import { AppError } from "@/server/errors";
 import { softDeleteContact, updateContact } from "@/server/services/contacts";
+import { createNote, deleteNote, updateNote } from "@/server/services/notes";
 import { createLead, type DuplicateContact } from "@/server/services/leads";
 import type { ActingUser } from "@/server/services/owners";
 
@@ -122,5 +123,75 @@ export async function deleteContactAction(
 
     revalidatePath("/contatos");
     redirect("/contatos?excluido=1");
+  });
+}
+
+export async function createContactNoteAction(
+  _previous: ContactActionState,
+  formData: FormData,
+): Promise<ContactActionState> {
+  return withSession(async (session) => {
+    const contactId = String(formData.get("contactId") ?? "").trim();
+    const text = String(formData.get("text") ?? "");
+    if (!contactId) return { error: "Contato inválido." };
+
+    try {
+      await createNote({
+        actingUser: actingUserFrom(session),
+        contactId,
+        text,
+      });
+    } catch (error) {
+      if (error instanceof AppError) return { error: error.message };
+      console.error("[contatos] Erro ao criar nota:", error);
+      return { error: GENERIC_ERROR };
+    }
+
+    revalidatePath(`/contatos/${contactId}`);
+    return null;
+  });
+}
+
+export async function deleteContactNoteAction(
+  noteId: string,
+  contactId: string,
+): Promise<ContactActionState> {
+  return withSession(async (session) => {
+    try {
+      await deleteNote({ id: noteId, actingUser: actingUserFrom(session) });
+    } catch (error) {
+      if (error instanceof AppError) return { error: error.message };
+      console.error("[contatos] Erro ao excluir nota:", error);
+      return { error: GENERIC_ERROR };
+    }
+
+    revalidatePath(`/contatos/${contactId}`);
+    return null;
+  });
+}
+export async function updateContactNoteAction(
+  _previous: ContactActionState,
+  formData: FormData,
+): Promise<ContactActionState> {
+  return withSession(async (session) => {
+    const noteId = String(formData.get("noteId") ?? "").trim();
+    const contactId = String(formData.get("contactId") ?? "").trim();
+    const text = String(formData.get("text") ?? "");
+    if (!noteId || !contactId) return { error: "Nota inv�lida." };
+
+    try {
+      await updateNote({
+        id: noteId,
+        actingUser: actingUserFrom(session),
+        text,
+      });
+    } catch (error) {
+      if (error instanceof AppError) return { error: error.message };
+      console.error("[contatos] Erro ao editar nota:", error);
+      return { error: GENERIC_ERROR };
+    }
+
+    revalidatePath(`/contatos/${contactId}`);
+    return null;
   });
 }

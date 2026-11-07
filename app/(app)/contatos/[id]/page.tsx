@@ -9,9 +9,13 @@ import { CONTACT_ORIGIN_LABELS, type ContactOrigin } from "@/lib/schemas/contact
 import { withSession, type AuthedSession } from "@/lib/session";
 import { formatCurrencyBR, formatDateBR } from "@/lib/utils";
 import { getContact } from "@/server/services/contacts";
+import { getAccountTimeZone } from "@/server/services/followup";
 import { listOwnerOptions, type ActingUser } from "@/server/services/owners";
 
 import { ContactPanel } from "./contact-panel";
+import { ContactNotesCard } from "./contact-notes";
+import { DealTimelineCard } from "@/app/(app)/negocios/[id]/deal-sections";
+import type { DealTimelineEvent } from "@/server/services/deals";
 
 export const metadata = { title: "Contato — Tervian" };
 
@@ -44,6 +48,7 @@ export default async function ContactDetailPage({
     if (!contact) notFound();
 
     const owners = await listOwnerOptions(actingUser);
+    const timeZone = await getAccountTimeZone();
     const whatsapp = whatsappLinkBR(contact.phone);
     const originLabel = contact.origin
       ? CONTACT_ORIGIN_LABELS[contact.origin as ContactOrigin]
@@ -181,6 +186,14 @@ export default async function ContactDetailPage({
               )}
             </CardContent>
           </Card>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <ContactNotesCard notes={contact.notes} contactId={contact.id} />
+          <DealTimelineCard
+            events={contact.timeline as unknown as DealTimelineEvent[]}
+            timeZone={timeZone}
+          />
         </div>
       </div>
     );

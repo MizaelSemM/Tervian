@@ -18,6 +18,7 @@ import {
   todayKeyInTimeZone,
 } from "@/lib/timezone";
 import { AppError } from "@/server/errors";
+import { logEvent } from "@/server/services/timeline";
 import { applyDealCloseInTransaction } from "@/server/services/deals";
 import { ensureDefaultLostReasons, listLostReasons } from "@/server/services/lost-reasons";
 import { listOwnerOptions, type ActingUser } from "@/server/services/owners";
@@ -35,7 +36,7 @@ import { listOwnerOptions, type ActingUser } from "@/server/services/owners";
 
 export type { TodayData, TodayTask } from "@/lib/followup-types";
 
-async function getAccountTimeZone(): Promise<string> {
+export async function getAccountTimeZone(): Promise<string> {
   const account = await tenantDb().account.findFirst({ select: { timezone: true } });
   return resolveTimeZone(account?.timezone);
 }
@@ -288,20 +289,18 @@ export async function completeTask(input: CompleteTaskInput): Promise<{
       },
     });
 
-    await tx.timelineEvent.create({
-      data: {
-        accountId,
-        type: "task.completed",
-        payload: {
-          taskId: task.id,
-          title: task.title,
-          result: input.result,
-          note: resultNote,
-        },
-        dealId: task.deal.id,
-        contactId: task.deal.contactId,
-        actorId: input.actingUser.id,
+    await logEvent({
+      type: "task.completed",
+      payload: {
+        taskId: task.id,
+        title: task.title,
+        result: input.result,
+        note: resultNote,
       },
+      dealId: task.deal.id,
+      contactId: task.deal.contactId,
+      actorId: input.actingUser.id,
+      client: tx,
     });
 
     if (closeStatus) {
@@ -354,18 +353,16 @@ export async function completeTask(input: CompleteTaskInput): Promise<{
       data: { nextActionAt },
     });
 
-    await tx.timelineEvent.create({
-      data: {
-        accountId,
-        type: "deal.next_action_changed",
-        payload: {
-          from: task.deal.nextActionAt?.toISOString() ?? null,
-          to: nextActionAt!.toISOString(),
-        },
-        dealId: task.deal.id,
-        contactId: task.deal.contactId,
-        actorId: input.actingUser.id,
+    await logEvent({
+      type: "deal.next_action_changed",
+      payload: {
+        from: task.deal.nextActionAt?.toISOString() ?? null,
+        to: nextActionAt!.toISOString(),
       },
+      dealId: task.deal.id,
+      contactId: task.deal.contactId,
+      actorId: input.actingUser.id,
+      client: tx,
     });
 
     await recomputeDealActivityInTransaction(tx, accountId, task.deal.id, now);
@@ -456,18 +453,16 @@ export async function scheduleNextAction(
       data: { nextActionAt: input.dueAt },
     });
 
-    await tx.timelineEvent.create({
-      data: {
-        accountId,
-        type: "deal.next_action_changed",
-        payload: {
-          from: deal.nextActionAt?.toISOString() ?? null,
-          to: input.dueAt.toISOString(),
-        },
-        dealId: deal.id,
-        contactId: deal.contactId,
-        actorId: input.actingUser.id,
+    await logEvent({
+      type: "deal.next_action_changed",
+      payload: {
+        from: deal.nextActionAt?.toISOString() ?? null,
+        to: input.dueAt.toISOString(),
       },
+      dealId: deal.id,
+      contactId: deal.contactId,
+      actorId: input.actingUser.id,
+      client: tx,
     });
 
     await recomputeDealActivityInTransaction(tx, accountId, deal.id, now);

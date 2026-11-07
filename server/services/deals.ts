@@ -4,6 +4,7 @@ import { Prisma } from "@/lib/generated/prisma/client";
 import { requireTenantContext } from "@/lib/tenant-context";
 import { tenantDb, type TenantTransactionClient } from "@/lib/tenant-prisma";
 import { AppError } from "@/server/errors";
+import { logEvent } from "@/server/services/timeline";
 import { ensureDefaultLostReasons } from "@/server/services/lost-reasons";
 import { resolveOwnerId, type ActingUser } from "@/server/services/owners";
 import {
@@ -472,15 +473,13 @@ export async function createDeal(
       },
     });
 
-    await tx.timelineEvent.create({
-      data: {
-        accountId,
-        type: "deal.created",
-        payload: { title, stage: stage.name, contact: contact.name },
-        dealId: deal.id,
-        contactId: contact.id,
-        actorId: input.actingUser.id,
-      },
+    await logEvent({
+      type: "deal.created",
+      payload: { title, stage: stage.name, contact: contact.name },
+      dealId: deal.id,
+      contactId: contact.id,
+      actorId: input.actingUser.id,
+      client: tx,
     });
 
     return deal;
@@ -511,7 +510,6 @@ export async function updateDeal(input: UpdateDealInput): Promise<{ contactId: s
   }
 
   const db = tenantDb();
-  const accountId = requireTenantContext().accountId;
 
   const existing = await db.deal.findFirst({
     where: { id: input.id, deletedAt: null, ...ownerScope(input.actingUser) },
@@ -570,15 +568,13 @@ export async function updateDeal(input: UpdateDealInput): Promise<{ contactId: s
       });
     }
 
-    await tx.timelineEvent.create({
-      data: {
-        accountId,
-        type: "deal.updated",
-        payload: { fields: changedFields },
-        dealId: existing.id,
-        contactId: existing.contactId,
-        actorId: input.actingUser.id,
-      },
+    await logEvent({
+      type: "deal.updated",
+      payload: { fields: changedFields },
+      dealId: existing.id,
+      contactId: existing.contactId,
+      actorId: input.actingUser.id,
+      client: tx,
     });
   });
 
@@ -602,7 +598,6 @@ export async function moveDeal(
   input: MoveDealInput,
 ): Promise<{ contactId: string; stageId: string; changed: boolean }> {
   const db = tenantDb();
-  const accountId = requireTenantContext().accountId;
 
   const deal = await db.deal.findFirst({
     where: { id: input.id, deletedAt: null, ...ownerScope(input.actingUser) },
@@ -647,15 +642,13 @@ export async function moveDeal(
       data: { stageId: target.id, lastActivityAt: now },
     });
 
-    await tx.timelineEvent.create({
-      data: {
-        accountId,
-        type: "deal.stage_changed",
-        payload: { from: deal.stage.name, to: target.name },
-        dealId: deal.id,
-        contactId: deal.contactId,
-        actorId: input.actingUser.id,
-      },
+    await logEvent({
+      type: "deal.stage_changed",
+      payload: { from: deal.stage.name, to: target.name },
+      dealId: deal.id,
+      contactId: deal.contactId,
+      actorId: input.actingUser.id,
+      client: tx,
     });
   });
 
@@ -751,18 +744,16 @@ export async function applyDealCloseInTransaction(
     },
   });
 
-  await tx.timelineEvent.create({
-    data: {
-      accountId: input.accountId,
-      type: "deal.closed",
-      payload:
-        input.status === "WON"
-          ? { status: "WON", value: finalValue }
-          : { status: "LOST", reason: lostReasonName, note: lostNote },
-      dealId: input.deal.id,
-      contactId: input.deal.contactId,
-      actorId: input.actorId,
-    },
+  await logEvent({
+    type: "deal.closed",
+    payload:
+      input.status === "WON"
+        ? { status: "WON", value: finalValue }
+        : { status: "LOST", reason: lostReasonName, note: lostNote },
+    dealId: input.deal.id,
+    contactId: input.deal.contactId,
+    actorId: input.actorId,
+    client: tx,
   });
 
   return { contactId: input.deal.contactId, finalValue };

@@ -1,5 +1,7 @@
 # 008 · Histórico, notas e busca global
 
+**Status:** ✅ Concluída em 07/11/2026 — implementação inicial em `008-historico-notas-busca`.
+
 **Requisitos:** RF-40, RF-41, RF-42 (P0) · RF-43 (P1 → `015`)
 **Prioridade:** P0 · **Depende de:** 002, 005, 006 (eventos nascem nesses módulos) · **Bloqueia:** 011 (painel usa `last_activity_at`)
 

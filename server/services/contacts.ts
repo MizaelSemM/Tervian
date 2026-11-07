@@ -2,10 +2,11 @@ import { ownerScope } from "@/lib/access";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { normalizePhoneBR } from "@/lib/phone";
 import type { ContactOrigin } from "@/lib/schemas/contact";
-import { requireTenantContext } from "@/lib/tenant-context";
+
 import { tenantDb } from "@/lib/tenant-prisma";
 import { AppError } from "@/server/errors";
 import { resolveOwnerId, type ActingUser } from "@/server/services/owners";
+import { logEvent } from "@/server/services/timeline";
 
 /**
  * Contatos — leitura, edição e exclusão lógica (tarefa 005).
@@ -112,6 +113,21 @@ export type ContactDealSummary = {
   createdAt: Date;
 };
 
+export type ContactNoteSummary = {
+  id: string;
+  text: string;
+  authorName: string;
+  createdAt: Date;
+};
+
+export type ContactTimelineEvent = {
+  id: string;
+  type: string;
+  payload: unknown;
+  createdAt: Date;
+  actorName: string | null;
+};
+
 export type ContactDetail = {
   id: string;
   name: string;
@@ -121,6 +137,8 @@ export type ContactDetail = {
   origin: ContactOrigin | null;
   owner: { id: string; name: string } | null;
   deals: ContactDealSummary[];
+  notes: ContactNoteSummary[];
+  timeline: ContactTimelineEvent[];
   createdAt: Date;
   updatedAt: Date;
 };
@@ -158,6 +176,26 @@ export async function getContact(input: {
           stage: { select: { name: true } },
         },
       },
+      notes: {
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          text: true,
+          createdAt: true,
+          author: { select: { name: true } },
+        },
+      },
+      timelineEvents: {
+        orderBy: { createdAt: "desc" },
+        take: 50,
+        select: {
+          id: true,
+          type: true,
+          payload: true,
+          createdAt: true,
+          actor: { select: { name: true } },
+        },
+      },
     },
   });
 
@@ -181,6 +219,19 @@ export async function getContact(input: {
       stageName: deal.stage.name,
       nextActionAt: deal.nextActionAt,
       createdAt: deal.createdAt,
+    })),
+    notes: contact.notes.map((note) => ({
+      id: note.id,
+      text: note.text,
+      authorName: note.author.name,
+      createdAt: note.createdAt,
+    })),
+    timeline: contact.timelineEvents.map((event) => ({
+      id: event.id,
+      type: event.type,
+      payload: event.payload,
+      createdAt: event.createdAt,
+      actorName: event.actor?.name ?? null,
     })),
   };
 }
@@ -216,7 +267,6 @@ export async function updateContact(input: UpdateContactInput): Promise<void> {
   }
 
   const db = tenantDb();
-  const accountId = requireTenantContext().accountId;
 
   const existing = await db.contact.findFirst({
     where: { id: input.id, deletedAt: null, ...ownerScope(input.actingUser) },
@@ -273,14 +323,12 @@ export async function updateContact(input: UpdateContactInput): Promise<void> {
       data: { name, phone, email, companyText, origin, ownerId },
     });
 
-    await tx.timelineEvent.create({
-      data: {
-        accountId,
-        type: "contact.updated",
-        payload: { fields: changedFields },
-        contactId: existing.id,
-        actorId: input.actingUser.id,
-      },
+    await logEvent({
+      type: "contact.updated",
+      payload: { fields: changedFields },
+      contactId: existing.id,
+      actorId: input.actingUser.id,
+      client: tx,
     });
   });
 }
@@ -300,7 +348,6 @@ export async function softDeleteContact(input: {
   actingUser: ActingUser;
 }): Promise<void> {
   const db = tenantDb();
-  const accountId = requireTenantContext().accountId;
 
   const contact = await db.contact.findFirst({
     where: { id: input.id, deletedAt: null, ...ownerScope(input.actingUser) },
@@ -330,16 +377,16 @@ export async function softDeleteContact(input: {
         data: { deletedAt: now, nextActionAt: null },
       });
 
-      await tx.timelineEvent.createMany({
-        data: openDeals.map((deal) => ({
-          accountId,
+      for (const deal of openDeals) {
+        await logEvent({
           type: "deal.deleted",
           payload: { reason: "contact.deleted" },
           dealId: deal.id,
           contactId: contact.id,
           actorId: input.actingUser.id,
-        })),
-      });
+          client: tx,
+        });
+      }
     }
 
     await tx.contact.update({
@@ -347,14 +394,12 @@ export async function softDeleteContact(input: {
       data: { deletedAt: now },
     });
 
-    await tx.timelineEvent.create({
-      data: {
-        accountId,
-        type: "contact.deleted",
-        payload: { name: contact.name },
-        contactId: contact.id,
-        actorId: input.actingUser.id,
-      },
+    await logEvent({
+      type: "contact.deleted",
+      payload: { name: contact.name },
+      contactId: contact.id,
+      actorId: input.actingUser.id,
+      client: tx,
     });
   });
 }
