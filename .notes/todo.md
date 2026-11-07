@@ -56,7 +56,7 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
 
 - [x] **008 · Histórico, notas e busca global** (RF-40..RF-42) → [008-historico-notas-busca.md](008-historico-notas-busca.md)
 - [x] **009 · Importação de CSV** (RF-11, US-06) → [009-importacao-csv.md](009-importacao-csv.md)
-- [ ] **010 · Formulário público de captura** (RF-12) → [010-formulario-publico.md](010-formulario-publico.md)
+- [x] **010 · Formulário público de captura** (RF-12) → [010-formulario-publico.md](010-formulario-publico.md)
 
 ### Bloco 6 — Gestor *(semana 5–6)*
 

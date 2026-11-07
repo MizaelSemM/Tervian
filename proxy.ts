@@ -11,7 +11,14 @@ import { NextResponse, type NextRequest } from "next/server";
  * barreira, nunca a única. Ver .notes/003 para o porquê desse desenho.
  */
 
-const PUBLIC_PATHS = ["/login", "/cadastro", "/esqueci-senha", "/redefinir-senha", "/convite"];
+const PUBLIC_PATHS = [
+  "/login",
+  "/cadastro",
+  "/esqueci-senha",
+  "/redefinir-senha",
+  "/convite",
+  "/f",
+];
 
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
