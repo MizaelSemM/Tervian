@@ -39,6 +39,13 @@ export function describeTimelineEvent(type: string, payload: unknown): string {
       const to = text(data, "to");
       return from && to ? `Etapa alterada de “${from}” para “${to}”.` : "Etapa alterada.";
     }
+    case "deal.owner_changed": {
+      const from = text(data, "fromName");
+      const to = text(data, "toName");
+      return from && to
+        ? `Responsável alterado de “${from}” para “${to}”.`
+        : "Responsável alterado.";
+    }
     case "deal.updated": {
       const fields = Array.isArray(data.fields)
         ? data.fields

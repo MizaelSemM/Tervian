@@ -37,3 +37,19 @@
 ---
 
 **✅ Critérios de aceite (US-04):** gestor responde em 30s a "quanto tem no funil, o que está parado e quem não está fazendo follow-up"; clicar em um vendedor mostra as tarefas atrasadas dele; reatribuir em lote funciona sem perder histórico.
+
+---
+
+## Implementação (08/11/2026)
+
+- **Página `/painel`** (Admin): KPIs de funil, previsão, parados, sem próxima ação e tarefas atrasadas; filtros de período (mês atual / últimos 30 dias) e de dias parados (7/14/30); resumo do período (novos, ganhos, concluídas).
+- **Agregações no servidor** (`server/services/dashboard.ts`): `groupBy` por etapa, contagens e listas curtas; o client recebe apenas o resumo por etapa.
+- **Regras puras** em `lib/dashboard.ts` (período no fuso da conta, corte de parados, previsão ponderada e resumo por etapa), cobertas por `tests/unit/dashboard.test.ts`.
+- **Recharts** (`app/(app)/painel/dashboard-charts.tsx`): barras horizontais de valor e quantidade por etapa, com a fórmula da previsão exibida na tela.
+- **Atividade por vendedor**: concluídas nos últimos 7 dias, atrasadas agora e tarefas abertas; clique no nome lista as atrasadas e leva à tela “Hoje” filtrada.
+- **Carteira `/painel/carteira`** (US-05): filtro por responsável, paginação de 25 e reatribuição em lote (até 200 negócios). Tarefas abertas acompanham o novo responsável; cada negócio recebe `deal.owner_changed` e a reatribuição não atualiza `lastActivityAt`.
+- **Detalhe do negócio**: a troca individual de responsável também gera `deal.owner_changed`, separado de `deal.updated`.
+- **Acesso**: link “Painel” só para Admin; `withAdmin` na página e nas actions, com checagem repetida no serviço.
+- **Testes**: 74 testes unitários verdes; `typecheck`, `lint` e `build` passando. Integração/seed continuam bloqueados pela indisponibilidade do Supabase no ambiente local.
+
+> “Semana” da atividade foi implementada como **últimos 7 dias de calendário** no fuso da conta (mesma janela usada pelo restante do painel).
