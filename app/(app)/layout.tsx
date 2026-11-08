@@ -48,6 +48,14 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           </Link>
           {session.user.role === "ADMIN" && (
             <Link
+              href="/painel"
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Painel
+            </Link>
+          )}
+          {session.user.role === "ADMIN" && (
+            <Link
               href="/equipe"
               className="text-sm text-muted-foreground transition-colors hover:text-foreground"
             >

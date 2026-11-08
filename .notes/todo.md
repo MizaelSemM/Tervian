@@ -60,7 +60,7 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
 
 ### Bloco 6 — Gestor *(semana 5–6)*
 
-- [ ] **011 · Painel do gestor** (RF-50..RF-52, US-04, US-05) → [011-painel-gestor.md](011-painel-gestor.md)
+- [x] **011 · Painel do gestor** (RF-50..RF-52, US-04, US-05) → [011-painel-gestor.md](011-painel-gestor.md)
 
 ### Bloco 7 — Qualidade do MVP *(semana 6–7)*
 

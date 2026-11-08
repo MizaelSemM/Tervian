@@ -518,6 +518,7 @@ export async function updateDeal(input: UpdateDealInput): Promise<{ contactId: s
       title: true,
       value: true,
       ownerId: true,
+      owner: { select: { name: true } },
       expectedCloseAt: true,
       contactId: true,
       status: true,
@@ -530,10 +531,10 @@ export async function updateDeal(input: UpdateDealInput): Promise<{ contactId: s
     throw new AppError("DEAL_CLOSED", "Negócio fechado não pode ser editado.");
   }
 
-  const ownerId =
-    input.ownerId === undefined
-      ? existing.ownerId
-      : await resolveOwnerId(db, input.actingUser, input.ownerId);
+  const ownerChanged = input.ownerId !== undefined && input.ownerId !== existing.ownerId;
+  const ownerId = ownerChanged
+    ? await resolveOwnerId(db, input.actingUser, input.ownerId)
+    : existing.ownerId;
   const value = input.value ?? null;
   const expectedCloseAt = input.expectedCloseAt ?? null;
 
@@ -541,7 +542,6 @@ export async function updateDeal(input: UpdateDealInput): Promise<{ contactId: s
     [
       ["title", existing.title, title],
       ["value", toNumber(existing.value), value],
-      ["ownerId", existing.ownerId, ownerId],
       [
         "expectedCloseAt",
         existing.expectedCloseAt?.getTime() ?? null,
@@ -552,7 +552,20 @@ export async function updateDeal(input: UpdateDealInput): Promise<{ contactId: s
     .filter(([, before, after]) => before !== after)
     .map(([field]) => field);
 
-  if (changedFields.length === 0) return { contactId: existing.contactId };
+  if (changedFields.length === 0 && ownerId === existing.ownerId) {
+    return { contactId: existing.contactId };
+  }
+
+  const nextOwner =
+    ownerId !== existing.ownerId
+      ? await db.user.findFirst({
+          where: { id: ownerId, active: true },
+          select: { id: true, name: true },
+        })
+      : null;
+  if (ownerId !== existing.ownerId && !nextOwner) {
+    throw new AppError("OWNER_NOT_FOUND", "Responsável não encontrado ou inativo nesta equipe.");
+  }
 
   const now = new Date();
   await db.$transaction(async (tx) => {
@@ -568,14 +581,32 @@ export async function updateDeal(input: UpdateDealInput): Promise<{ contactId: s
       });
     }
 
-    await logEvent({
-      type: "deal.updated",
-      payload: { fields: changedFields },
-      dealId: existing.id,
-      contactId: existing.contactId,
-      actorId: input.actingUser.id,
-      client: tx,
-    });
+    if (changedFields.length > 0) {
+      await logEvent({
+        type: "deal.updated",
+        payload: { fields: changedFields },
+        dealId: existing.id,
+        contactId: existing.contactId,
+        actorId: input.actingUser.id,
+        client: tx,
+      });
+    }
+
+    if (nextOwner) {
+      await logEvent({
+        type: "deal.owner_changed",
+        payload: {
+          fromId: existing.ownerId,
+          fromName: existing.owner.name,
+          toId: nextOwner.id,
+          toName: nextOwner.name,
+        },
+        dealId: existing.id,
+        contactId: existing.contactId,
+        actorId: input.actingUser.id,
+        client: tx,
+      });
+    }
   });
 
   return { contactId: existing.contactId };
