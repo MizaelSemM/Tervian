@@ -24,7 +24,7 @@ import { TASK_RESULT_VALUES, type TaskResultValue } from "@/lib/schemas/followup
 import { addDaysToDateKey } from "@/lib/timezone";
 import { cn, formatCurrencyBR } from "@/lib/utils";
 
-import { completeTaskAction } from "./actions";
+import { completeTaskAction, undoCompleteTaskAction } from "./actions";
 
 type Tone = "overdue" | "today";
 
@@ -75,6 +75,19 @@ export function TodayView({
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+  const router = useRouter();
+
+  function handleUndo(taskId: string) {
+    startTransition(async () => {
+      const response = await undoCompleteTaskAction(taskId);
+      if (!response.ok) {
+        toast.error(response.error);
+        return;
+      }
+      toast.success("Tarefa reaberta.");
+      router.refresh();
+    });
+  }
 
   function handleComplete(task: TodayTask, input: CompleteInput) {
     if (pendingTaskId) return;
@@ -96,12 +109,16 @@ export function TodayView({
         }
 
         setExpandedId(null);
+        const undo = response.canUndo
+          ? { label: "Desfazer", onClick: () => handleUndo(task.id) }
+          : undefined;
+
         if (input.result === "WON") {
-          toast.success("Negócio ganho! Próxima ação encerrada.");
+          toast.success("Negócio ganho! Próxima ação encerrada.", { action: undo });
         } else if (input.result === "LOST") {
-          toast.success("Negócio perdido. O motivo ficou registrado.");
+          toast.success("Negócio perdido. O motivo ficou registrado.", { action: undo });
         } else {
-          toast.success("Tarefa concluída. Próxima ação agendada.");
+          toast.success("Tarefa concluída. Próxima ação agendada.", { action: undo });
         }
       } catch {
         toast.error("Não foi possível concluir a tarefa. Tente novamente.");
@@ -114,7 +131,7 @@ export function TodayView({
   const empty = state.counts.overdue === 0 && state.counts.today === 0;
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-5 pb-24">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-5 pb-4">
       <header className="flex flex-col gap-4">
         <div>
           <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">

@@ -75,6 +75,8 @@ export function describeTimelineEvent(type: string, payload: unknown): string {
         ? `Tarefa concluída: ${title} (${resultLabel}).`
         : `Tarefa concluída: ${title}.`;
     }
+    case "task.reopened":
+      return "Conclusão desfeita: tarefa reaberta.";
     case "note.added":
       return "Nota adicionada.";
     case "note.updated":

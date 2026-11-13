@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { addDaysToDateKey } from "@/lib/timezone";
 import {
   cn,
   dateKeyBR,
@@ -40,6 +41,17 @@ export function DealNextAction({
         return;
       }
       toast.success("Próxima ação atualizada.");
+    });
+  }
+
+  function handleShortcut(dateKey: string) {
+    startTransition(async () => {
+      const result = await rescheduleDealAction(dealId, dateKey);
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success(`Próxima ação para ${formatDateBR(parseDateKeyBR(dateKey))}.`);
     });
   }
 
@@ -119,6 +131,26 @@ export function DealNextAction({
             {pending ? "Salvando…" : "Reagendar"}
           </Button>
         </form>
+
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { label: "Amanhã", days: 1 },
+            { label: "3 dias", days: 3 },
+            { label: "1 semana", days: 7 },
+          ].map((shortcut) => (
+            <Button
+              key={shortcut.days}
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-10"
+              disabled={pending}
+              onClick={() => handleShortcut(addDaysToDateKey(todayDateKeyBR(), shortcut.days))}
+            >
+              {shortcut.label}
+            </Button>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

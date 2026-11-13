@@ -20,7 +20,7 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
 
 ## ⏳ Em Progresso
 
-- [ ] **012 · PWA, mobile-first e UX de um clique** → [012-pwa-ux-mobile.md](012-pwa-ux-mobile.md)
+- [ ] **012 · PWA, mobile-first e UX de um clique** → [012-pwa-ux-mobile.md](012-pwa-ux-mobile.md) — base implementada; faltam medições (4G/Lighthouse) e teste em aparelho real
 
 > ⚠️ **Revisão de 13/11/2026:** o quadro marcava 008–011 como concluídas, mas 009 e 010 ainda tinham critérios de aceite abertos. 009 e 010 foram fechadas; 008 e 011 já estavam implementadas.
 > Migration nova da 010 (`add_public_form_settings`) precisa ser aplicada no Supabase com `npm run db:migrate`.
@@ -69,7 +69,7 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
 
 ### Bloco 7 — Qualidade do MVP *(semana 6–7)*
 
-- [ ] **012 · PWA, mobile-first e UX de um clique** → [012-pwa-ux-mobile.md](012-pwa-ux-mobile.md)
+- [ ] **012 · PWA, mobile-first e UX de um clique** → [012-pwa-ux-mobile.md](012-pwa-ux-mobile.md) — base implementada; faltam medições e teste em aparelho real
 - [ ] **013 · Segurança, LGPD e observabilidade** → [013-seguranca-lgpd-observabilidade.md](013-seguranca-lgpd-observabilidade.md)
 - [ ] **014 · Testes e QA** (Vitest + Playwright, isolamento, "Hoje" < 2s) → [014-testes-qa.md](014-testes-qa.md)
 
@@ -100,6 +100,7 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
 - [x] 08/11/2026 — **011 · Painel do gestor concluída**: KPIs de funil, previsão ponderada, negócios parados, sem próxima ação, atividade por vendedor, filtros de período/parados e reatribuição em lote na carteira — implementação no `master`; checkboxes do arquivo fechados na revisão de aceite
 - [x] 13/11/2026 — **010 · Formulário público concluída**: slug configurável (`/f/<slug>` com fallback para o id), ativar/desativar, título/mensagem de agradecimento, responsável padrão, WhatsApp pós-envio, snippet de embed, QR local e prévia ao vivo em `/configuracoes`; lead cai na tela “Hoje” via `createLead()` — 10 testes unitários novos (90 verdes)
 - [x] 13/11/2026 — **009 · Importação de CSV concluída**: lotes de 100 linhas via Server Action com barra de progresso e cancelamento, mapeamento automático de colunas, Latin-1/Windows-1252, separador `;`/`,`/tab, decisão de duplicado (ignorar/atualizar/criar negócio), opção “só contatos”, relatório com CSV de erros e fixture de 5.000 linhas no CI — 6 testes novos (80 unitários verdes)
+- [x] 13/11/2026 — **012 · PWA/mobile/UX — base implementada**: navegação inferior (Hoje/Funil/Contatos/Painel) com alvos de 56px, manifest + service worker (network-first e fallback `/offline`) + aviso de atualização, desfazer em concluir tarefa/adiar/mudar etapa, atalhos de data no negócio e skeletons nas listas/detalhes — faltam Lighthouse, medição em 4G e teste em aparelho real
 
 ---
 

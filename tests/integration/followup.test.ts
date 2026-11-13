@@ -8,7 +8,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { prismaBase } from "@/lib/prisma";
 import { runWithTenant } from "@/lib/tenant-context";
 import { createDeal } from "@/server/services/deals";
-import { completeTask, getToday } from "@/server/services/followup";
+import { completeTask, getToday, undoCompleteTask } from "@/server/services/followup";
 import { listLostReasons } from "@/server/services/lost-reasons";
 import { ensureDefaultPipeline, type StageRef } from "@/server/services/pipeline";
 
@@ -420,6 +420,77 @@ describe("completeTask (integração)", () => {
     expect(events.map((event) => event.type)).toEqual(
       expect.arrayContaining(["task.completed", "deal.next_action_changed"]),
     );
+  }, 20_000);
+
+  it("desfaz a conclusão restaurando tarefa e próxima ação", async () => {
+    const deal = await makeDealWithTask(write, {
+      contactName: "Contato Desfazer",
+      title: "Negócio desfazer",
+      value: 900,
+      ownerId: write.sellerA.id,
+      nextActionAt: TODAY_9,
+    });
+
+    await as(write, "sellerA", () =>
+      completeTask({
+        taskId: deal.taskId,
+        actingUser: acting(write, "sellerA"),
+        result: "ANSWERED",
+        nextActionDate: "2026-11-02",
+        now: NOW,
+      }),
+    );
+
+    const createdNextTask = await prismaBase.task.findFirstOrThrow({
+      where: { accountId: write.accountId, dealId: deal.dealId, completedAt: null },
+      select: { id: true },
+    });
+
+    const undo = await as(write, "sellerA", () =>
+      undoCompleteTask({ taskId: deal.taskId, actingUser: acting(write, "sellerA") }),
+    );
+    expect(undo).toMatchObject({ dealId: deal.dealId, contactId: deal.contactId });
+
+    const reopened = await prismaBase.task.findUniqueOrThrow({ where: { id: deal.taskId } });
+    expect(reopened.completedAt).toBeNull();
+    expect(reopened.result).toBeNull();
+    expect(reopened.resultNote).toBeNull();
+
+    expect(await prismaBase.task.findUnique({ where: { id: createdNextTask.id } })).toBeNull();
+
+    const dealAfter = await prismaBase.deal.findUniqueOrThrow({ where: { id: deal.dealId } });
+    expect(dealAfter.nextActionAt?.toISOString()).toBe(TODAY_9.toISOString());
+
+    const events = await prismaBase.timelineEvent.findMany({
+      where: { dealId: deal.dealId, type: "task.reopened" },
+    });
+    expect(events).toHaveLength(1);
+  }, 20_000);
+
+  it("não desfaz conclusão de negócio fechado", async () => {
+    const deal = await makeDealWithTask(write, {
+      contactName: "Contato Ganho Desfazer",
+      title: "Negócio ganho desfazer",
+      value: 500,
+      ownerId: write.sellerA.id,
+      nextActionAt: TODAY_9,
+    });
+
+    await as(write, "sellerA", () =>
+      completeTask({
+        taskId: deal.taskId,
+        actingUser: acting(write, "sellerA"),
+        result: "WON",
+        wonValue: 500,
+        now: NOW,
+      }),
+    );
+
+    await expect(
+      as(write, "sellerA", () =>
+        undoCompleteTask({ taskId: deal.taskId, actingUser: acting(write, "sellerA") }),
+      ),
+    ).rejects.toMatchObject({ code: "UNDO_UNAVAILABLE" });
   }, 20_000);
 
   it("não conclui sem próxima ação e não altera nada", async () => {

@@ -289,21 +289,21 @@ export async function completeTask(input: CompleteTaskInput): Promise<{
       },
     });
 
-    await logEvent({
-      type: "task.completed",
-      payload: {
-        taskId: task.id,
-        title: task.title,
-        result: input.result,
-        note: resultNote,
-      },
-      dealId: task.deal.id,
-      contactId: task.deal.contactId,
-      actorId: input.actingUser.id,
-      client: tx,
-    });
-
     if (closeStatus) {
+      await logEvent({
+        type: "task.completed",
+        payload: {
+          taskId: task.id,
+          title: task.title,
+          result: input.result,
+          note: resultNote,
+        },
+        dealId: task.deal.id,
+        contactId: task.deal.contactId,
+        actorId: input.actingUser.id,
+        client: tx,
+      });
+
       const close = await applyDealCloseInTransaction(tx, {
         accountId,
         actorId: input.actingUser.id,
@@ -327,16 +327,18 @@ export async function completeTask(input: CompleteTaskInput): Promise<{
         id: { not: task.id },
       },
       orderBy: { dueAt: "asc" },
-      select: { id: true },
+      select: { id: true, dueAt: true, title: true, type: true, ownerId: true },
     });
 
+    let nextTaskId: string;
     if (existingOpenTask) {
       await tx.task.update({
         where: { id: existingOpenTask.id },
         data: { dueAt: nextActionAt!, title, ownerId: task.deal.ownerId, type: task.type },
       });
+      nextTaskId = existingOpenTask.id;
     } else {
-      await tx.task.create({
+      const nextTask = await tx.task.create({
         data: {
           accountId,
           dealId: task.deal.id,
@@ -345,8 +347,38 @@ export async function completeTask(input: CompleteTaskInput): Promise<{
           title,
           dueAt: nextActionAt!,
         },
+        select: { id: true },
       });
+      nextTaskId = nextTask.id;
     }
+
+    // Guarda o estado anterior no próprio evento para permitir "Desfazer" com
+    // segurança mesmo em outra requisição/instância.
+    await logEvent({
+      type: "task.completed",
+      payload: {
+        taskId: task.id,
+        title: task.title,
+        result: input.result,
+        note: resultNote,
+        nextTaskId,
+        nextTaskCreated: !existingOpenTask,
+        previousNextActionAt: task.deal.nextActionAt?.toISOString() ?? null,
+        previousTask: existingOpenTask
+          ? {
+              id: existingOpenTask.id,
+              dueAt: existingOpenTask.dueAt.toISOString(),
+              title: existingOpenTask.title,
+              type: existingOpenTask.type,
+              ownerId: existingOpenTask.ownerId,
+            }
+          : null,
+      },
+      dealId: task.deal.id,
+      contactId: task.deal.contactId,
+      actorId: input.actingUser.id,
+      client: tx,
+    });
 
     await tx.deal.update({
       where: { id: task.deal.id },
@@ -384,6 +416,126 @@ export async function completeTask(input: CompleteTaskInput): Promise<{
     contactId: outcome.contactId,
     closed: outcome.closed,
   };
+}
+
+export type UndoCompleteTaskInput = {
+  taskId: string;
+  actingUser: ActingUser;
+};
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+/**
+ * Desfaz uma conclusão recente (toast "Desfazer").
+ *
+ * Não é um rollback genérico: usa o estado anterior gravado no evento
+ * `task.completed` (próxima tarefa criada/atualizada e `next_action_at`).
+ * Fechamentos (ganho/perdido) não são reversíveis por aqui — reabrir negócio é
+ * uma decisão de negócio, não um "desfazer" acidental.
+ */
+export async function undoCompleteTask(
+  input: UndoCompleteTaskInput,
+): Promise<{ dealId: string; contactId: string }> {
+  const db = tenantDb();
+  const accountId = requireTenantContext().accountId;
+  const now = new Date();
+
+  const task = await db.task.findFirst({
+    where: { id: input.taskId, completedAt: { not: null } },
+    select: {
+      id: true,
+      ownerId: true,
+      dueAt: true,
+      deal: { select: { id: true, status: true, contactId: true } },
+    },
+  });
+
+  if (!task || (input.actingUser.role !== "ADMIN" && task.ownerId !== input.actingUser.id)) {
+    throw new AppError("TASK_NOT_FOUND", "Tarefa não encontrada para este usuário.");
+  }
+  if (task.deal.status !== "OPEN") {
+    throw new AppError("UNDO_UNAVAILABLE", "Não é possível desfazer: o negócio já foi fechado.");
+  }
+
+  const event = await db.timelineEvent.findFirst({
+    where: { dealId: task.deal.id, type: "task.completed" },
+    orderBy: { createdAt: "desc" },
+    select: { payload: true },
+  });
+  const payload = asRecord(event?.payload);
+
+  if (payload.taskId !== task.id) {
+    throw new AppError("UNDO_UNAVAILABLE", "Não foi possível localizar esta conclusão.");
+  }
+
+  const nextTaskId = typeof payload.nextTaskId === "string" ? payload.nextTaskId : null;
+  const nextTaskCreated = payload.nextTaskCreated === true;
+  const previousTask = asRecord(payload.previousTask);
+  const previousNextActionAt =
+    typeof payload.previousNextActionAt === "string"
+      ? new Date(payload.previousNextActionAt)
+      : null;
+  const restoredNextAction =
+    previousNextActionAt && !Number.isNaN(previousNextActionAt.getTime())
+      ? previousNextActionAt
+      : null;
+
+  await db.$transaction(async (tx) => {
+    await tx.task.update({
+      where: { id: task.id },
+      data: { completedAt: null, result: null, resultNote: null },
+    });
+
+    if (nextTaskId) {
+      if (nextTaskCreated) {
+        // Só remove a tarefa que a própria conclusão criou e que segue aberta.
+        await tx.task.deleteMany({ where: { id: nextTaskId, completedAt: null } });
+      } else if (previousTask.id === nextTaskId) {
+        const previousDueAt =
+          typeof previousTask.dueAt === "string" ? new Date(previousTask.dueAt) : null;
+        const previousType =
+          previousTask.type === "WHATSAPP" ||
+          previousTask.type === "CALL" ||
+          previousTask.type === "MEETING" ||
+          previousTask.type === "OTHER"
+            ? previousTask.type
+            : "OTHER";
+
+        await tx.task.updateMany({
+          where: { id: nextTaskId, completedAt: null },
+          data: {
+            dueAt:
+              previousDueAt && !Number.isNaN(previousDueAt.getTime()) ? previousDueAt : task.dueAt,
+            title: typeof previousTask.title === "string" ? previousTask.title : "Follow-up",
+            type: previousType,
+            ownerId: typeof previousTask.ownerId === "string" ? previousTask.ownerId : task.ownerId,
+          },
+        });
+      }
+    }
+
+    await tx.deal.update({
+      where: { id: task.deal.id },
+      data: { nextActionAt: restoredNextAction },
+    });
+
+    await logEvent({
+      type: "task.reopened",
+      payload: { taskId: task.id },
+      dealId: task.deal.id,
+      contactId: task.deal.contactId,
+      actorId: input.actingUser.id,
+      client: tx,
+    });
+
+    await recomputeDealActivityInTransaction(tx, accountId, task.deal.id, now);
+  });
+
+  return { dealId: task.deal.id, contactId: task.deal.contactId };
 }
 
 export type ScheduleNextActionInput = {
