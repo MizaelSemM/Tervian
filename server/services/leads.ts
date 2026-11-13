@@ -38,6 +38,11 @@ export type CreateLeadInput = {
   source?: LeadSource;
   /** Tempo entre abrir o formulário e salvar (métrica "< 20s", ver 013). */
   captureSeconds?: number;
+  /**
+   * Cria negócio + tarefa de primeiro contato (padrão) ou só o contato.
+   * A importação CSV usa `false` na opção "importar apenas contatos".
+   */
+  createDeal?: boolean;
 };
 
 export type DuplicateContact = {
@@ -49,6 +54,7 @@ export type DuplicateContact = {
 
 export type CreateLeadResult =
   | { status: "created"; contactId: string; dealId: string; taskId: string }
+  | { status: "created-contact"; contactId: string }
   | { status: "duplicate"; contact: DuplicateContact };
 
 function optionalText(value: string | null | undefined): string | null {
@@ -104,6 +110,7 @@ export async function createLead(input: CreateLeadInput): Promise<CreateLeadResu
   const now = new Date();
   const source = input.source ?? "manual";
   const origin = input.origin ?? "OTHER";
+  const createDeal = input.createDeal ?? true;
   // Tarefa "para hoje": vence agora, para entrar na tela "Hoje" sem esperar
   // um horário fixo (o vendedor já pode chamar no mesmo minuto).
   const dueAt = now;
@@ -122,6 +129,17 @@ export async function createLead(input: CreateLeadInput): Promise<CreateLeadResu
         },
         select: { id: true },
       });
+
+      if (!createDeal) {
+        await logEvent({
+          type: "contact.created",
+          payload: { source, origin },
+          contactId: contact.id,
+          actorId: input.actingUser.id,
+          client: tx,
+        });
+        return { status: "created-contact" as const, contactId: contact.id };
+      }
 
       const deal = await tx.deal.create({
         data: {
@@ -157,8 +175,18 @@ export async function createLead(input: CreateLeadInput): Promise<CreateLeadResu
         client: tx,
       });
 
-      return { contactId: contact.id, dealId: deal.id, taskId: task.id };
+      return {
+        status: "created" as const,
+        contactId: contact.id,
+        dealId: deal.id,
+        taskId: task.id,
+      };
     });
+
+    if (created.status === "created-contact") {
+      trackEvent("contact_created", { source, origin });
+      return created;
+    }
 
     trackEvent("lead_created", {
       source,
@@ -168,7 +196,7 @@ export async function createLead(input: CreateLeadInput): Promise<CreateLeadResu
       has_company: Boolean(input.companyText),
     });
 
-    return { status: "created", ...created };
+    return created;
   } catch (error) {
     // Corrida entre duas capturas do mesmo telefone: o índice único decide;
     // devolvemos o contato que venceu, em vez de estourar erro na tela.

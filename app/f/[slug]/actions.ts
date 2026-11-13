@@ -93,7 +93,7 @@ export async function submitPublicLeadAction(
           utmCampaign,
           duplicate: result.status === "duplicate",
         },
-        contactId: result.status === "created" ? result.contactId : result.contact.id,
+        contactId: result.status === "duplicate" ? result.contact.id : result.contactId,
         actorId: owner.id,
       });
     });

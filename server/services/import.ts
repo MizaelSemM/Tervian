@@ -1,59 +1,43 @@
+import {
+  IMPORT_CHUNK_SIZE,
+  IMPORT_MAX_BYTES,
+  IMPORT_MAX_ROWS,
+  emptyImportResult,
+  mergeImportResults,
+  type ImportChunkRow,
+  type ImportColumnMapping,
+  type ImportDuplicateAction,
+  type ImportError,
+  type ImportPreview,
+  type ImportResult,
+  type ImportRow,
+} from "@/lib/import";
 import { normalizePhoneBR } from "@/lib/phone";
+import { CONTACT_ORIGINS, createLeadSchema, type ContactOrigin } from "@/lib/schemas/contact";
 
 import { AppError } from "@/server/errors";
-import { createLead, type CreateLeadResult } from "@/server/services/leads";
+import { updateContact } from "@/server/services/contacts";
+import { createDeal } from "@/server/services/deals";
+import { createLead } from "@/server/services/leads";
 import { logEvent } from "@/server/services/timeline";
 import type { ActingUser } from "@/server/services/owners";
-import type { ContactOrigin } from "@/lib/schemas/contact";
 
-export const IMPORT_MAX_BYTES = 5 * 1024 * 1024;
-export const IMPORT_MAX_ROWS = 10000;
-
-export type ImportColumnMapping = {
-  name?: number;
-  phone?: number;
-  email?: number;
-  companyText?: number;
-  origin?: number;
-  tags?: number;
+// Reexporta o contrato puro para quem já importava daqui.
+export {
+  IMPORT_CHUNK_SIZE,
+  IMPORT_MAX_BYTES,
+  IMPORT_MAX_ROWS,
+  emptyImportResult,
+  mergeImportResults,
 };
-
-export type ImportRow = {
-  rowNumber: number;
-  name: string;
-  phone: string;
-  normalizedPhone: string | null;
-  email: string | null;
-  companyText: string | null;
-  origin: ContactOrigin | null;
-  tags: string[];
-  errors: string[];
-  raw: string;
-};
-
-export type ImportPreview = {
-  headers: string[];
-  mapping: ImportColumnMapping;
-  rows: ImportRow[];
-  total: number;
-  valid: number;
-  invalid: number;
-  separator: string;
-  encoding: string;
-};
-
-export type ImportError = {
-  rowNumber: number;
-  reason: string;
-  raw: string;
-};
-
-export type ImportResult = {
-  total: number;
-  imported: number;
-  duplicates: number;
-  ignored: number;
-  errors: ImportError[];
+export type {
+  ImportChunkRow,
+  ImportColumnMapping,
+  ImportDuplicateAction,
+  ImportError,
+  ImportPreview,
+  ImportResult,
+  ImportRow,
 };
 
 const ORIGINS = new Set<string>([
@@ -268,11 +252,154 @@ export function parseImportCsv(
   };
 }
 
+function rowError(row: ImportChunkRow, reason: string): ImportError {
+  return {
+    rowNumber: row.rowNumber,
+    reason,
+    raw: row.raw ?? [row.name, row.phone, row.email ?? "", row.companyText ?? ""].join(";"),
+  };
+}
+
+function parseChunkRow(row: ImportChunkRow) {
+  return createLeadSchema.safeParse({
+    name: row.name,
+    phone: row.phone,
+    email: row.email ?? undefined,
+    companyText: row.companyText ?? undefined,
+    origin: row.origin ?? undefined,
+  });
+}
+
+/**
+ * Importa um lote pequeno (até 100 linhas) e devolve o relatório parcial.
+ *
+ * O client envia vários lotes em sequência e mostra o progresso; assim nenhuma
+ * execução chega perto do timeout da Vercel, mesmo com 5.000+ linhas. O servidor
+ * revalida cada linha (não confia no preview do client) e usa os mesmos serviços
+ * da captura manual.
+ */
+export async function importRowsChunk(input: {
+  actingUser: ActingUser;
+  rows: ImportChunkRow[];
+  duplicateAction?: ImportDuplicateAction;
+  onlyContacts?: boolean;
+  baseLegal: boolean;
+}): Promise<ImportResult> {
+  if (!input.baseLegal) {
+    throw new AppError(
+      "IMPORT_BASE_LEGAL_REQUIRED",
+      "Confirme a base legal para importar os dados.",
+    );
+  }
+  if (input.rows.length === 0) {
+    throw new AppError("IMPORT_EMPTY", "Nenhuma linha para importar.");
+  }
+  if (input.rows.length > IMPORT_CHUNK_SIZE) {
+    throw new AppError("IMPORT_CHUNK_TOO_LARGE", "Envie no máximo 100 linhas por lote.");
+  }
+
+  const result = emptyImportResult();
+  const duplicateAction = input.duplicateAction ?? "skip";
+  const onlyContacts = input.onlyContacts ?? false;
+
+  for (const row of input.rows) {
+    result.total += 1;
+    const parsed = parseChunkRow(row);
+    if (!parsed.success) {
+      result.ignored += 1;
+      result.errors.push(rowError(row, parsed.error.issues[0]?.message ?? "Linha inválida."));
+      continue;
+    }
+
+    try {
+      const created = await createLead({
+        actingUser: input.actingUser,
+        ...parsed.data,
+        origin: parsed.data.origin ?? "IMPORT",
+        source: "csv",
+        createDeal: !onlyContacts,
+      });
+
+      if (created.status !== "duplicate") {
+        result.imported += 1;
+        continue;
+      }
+
+      result.duplicates += 1;
+
+      if (duplicateAction === "skip") {
+        result.errors.push(rowError(row, `Contato duplicado na base: ${created.contact.name}.`));
+        continue;
+      }
+
+      if (duplicateAction === "update") {
+        try {
+          await updateContact({
+            id: created.contact.id,
+            actingUser: input.actingUser,
+            name: parsed.data.name,
+            phone: parsed.data.phone,
+            email: parsed.data.email,
+            companyText: parsed.data.companyText,
+            origin: parsed.data.origin,
+          });
+          result.updated += 1;
+        } catch (error) {
+          result.ignored += 1;
+          result.errors.push(
+            rowError(
+              row,
+              error instanceof AppError ? error.message : "Erro ao atualizar o contato existente.",
+            ),
+          );
+        }
+        continue;
+      }
+
+      // "create": mantém o contato único (telefone é a chave) e cria um novo
+      // negócio para ele — útil quando a mesma pessoa traz outra oportunidade.
+      if (onlyContacts) {
+        result.errors.push(
+          rowError(row, "Contato já existe; o modo “só contatos” não cria novo negócio."),
+        );
+        continue;
+      }
+
+      try {
+        await createDeal({
+          actingUser: input.actingUser,
+          contactId: created.contact.id,
+          title: parsed.data.name,
+          nextActionAt: new Date(),
+        });
+        result.dealsCreated += 1;
+      } catch (error) {
+        result.ignored += 1;
+        result.errors.push(
+          rowError(
+            row,
+            error instanceof AppError ? error.message : "Erro ao criar negócio para o contato.",
+          ),
+        );
+      }
+    } catch (error) {
+      result.ignored += 1;
+      result.errors.push(
+        rowError(row, error instanceof AppError ? error.message : "Erro inesperado ao importar."),
+      );
+    }
+  }
+
+  return result;
+}
+
+/** Caminho legado (importação em uma chamada) — mantido para scripts/testes. */
 export async function importContactsCsv(input: {
   actingUser: ActingUser;
   buffer: ArrayBuffer;
   mapping?: ImportColumnMapping;
-  duplicateAction?: "skip" | "create";
+  duplicateAction?: ImportDuplicateAction;
+  onlyContacts?: boolean;
   baseLegal: boolean;
 }): Promise<ImportResult> {
   if (!input.baseLegal) {
@@ -286,83 +413,58 @@ export async function importContactsCsv(input: {
   }
 
   const preview = parseImportCsv(input.buffer, input.mapping);
-  const seenPhones = new Set<string>();
-  const errors: ImportError[] = [];
-  let imported = 0;
-  let duplicates = 0;
-  let ignored = 0;
-
-  for (const row of preview.rows) {
-    if (row.errors.length > 0 || !row.normalizedPhone) {
-      ignored += 1;
-      errors.push({
-        rowNumber: row.rowNumber,
-        reason: row.errors.join(" ") || "Linha inválida.",
-        raw: row.raw,
-      });
-      continue;
-    }
-
-    if (seenPhones.has(row.normalizedPhone)) {
-      duplicates += 1;
-      errors.push({
-        rowNumber: row.rowNumber,
-        reason: "Telefone duplicado dentro do próprio arquivo.",
-        raw: row.raw,
-      });
-      continue;
-    }
-    seenPhones.add(row.normalizedPhone);
-
-    try {
-      const result: CreateLeadResult = await createLead({
+  const chunks: ImportResult[] = [];
+  for (let index = 0; index < preview.rows.length; index += IMPORT_CHUNK_SIZE) {
+    chunks.push(
+      await importRowsChunk({
         actingUser: input.actingUser,
-        name: row.name,
-        phone: row.phone,
-        email: row.email,
-        companyText: row.companyText,
-        origin: row.origin ?? "IMPORT",
-        source: "csv",
-      });
-
-      if (result.status === "duplicate") {
-        duplicates += 1;
-        errors.push({
-          rowNumber: row.rowNumber,
-          reason: `Contato duplicado na base: ${result.contact.name}.`,
-          raw: row.raw,
-        });
-      } else {
-        imported += 1;
-      }
-    } catch (error) {
-      ignored += 1;
-      errors.push({
-        rowNumber: row.rowNumber,
-        reason: error instanceof AppError ? error.message : "Erro inesperado ao importar.",
-        raw: row.raw,
-      });
-    }
+        rows: preview.rows.slice(index, index + IMPORT_CHUNK_SIZE),
+        duplicateAction: input.duplicateAction,
+        onlyContacts: input.onlyContacts,
+        baseLegal: true,
+      }),
+    );
   }
 
-  if (imported > 0) {
+  const merged = mergeImportResults(chunks);
+  if (merged.imported + merged.updated + merged.dealsCreated > 0) {
     await logEvent({
       type: "import.completed",
       payload: {
-        imported,
-        duplicates,
-        ignored,
-        errors: errors.length,
+        imported: merged.imported,
+        updated: merged.updated,
+        dealsCreated: merged.dealsCreated,
+        duplicates: merged.duplicates,
+        ignored: merged.ignored,
+        errors: merged.errors.length,
       },
       actorId: input.actingUser.id,
     });
   }
-
-  return {
-    total: preview.total,
-    imported,
-    duplicates,
-    ignored,
-    errors,
-  };
+  return merged;
 }
+
+/** Registra o evento único de conclusão quando o client termina todos os lotes. */
+export async function logImportCompleted(input: {
+  actingUser: ActingUser;
+  result: ImportResult;
+}): Promise<void> {
+  if (input.result.imported + input.result.updated + input.result.dealsCreated <= 0) {
+    return;
+  }
+  await logEvent({
+    type: "import.completed",
+    payload: {
+      imported: input.result.imported,
+      updated: input.result.updated,
+      dealsCreated: input.result.dealsCreated,
+      duplicates: input.result.duplicates,
+      ignored: input.result.ignored,
+      errors: input.result.errors.length,
+    },
+    actorId: input.actingUser.id,
+  });
+}
+
+// Mantém a lista de origens exportada para o schema de importação do client.
+export const IMPORT_ORIGINS = CONTACT_ORIGINS;
