@@ -1,5 +1,6 @@
 # 001 · Fundação: repositório, stack e infra mínima
 
+**Status:** ⏸️ Código concluído; restam itens operacionais que dependem das contas do dono (Vercel/Sentry/PostHog/Resend) e a recriação do Supabase em São Paulo. Não bloqueia o desenvolvimento local.
 **Requisitos:** seções 13 (stack) e 11 (RNF) do PRD
 **Prioridade:** P0 · **Depende de:** decisões do `000` · **Bloqueia:** todos os módulos
 
@@ -7,19 +8,19 @@
 
 ## Projeto e convenções
 
-- [ ] Inicializar repositório Git + `README.md` com instruções de setup e scripts
-- [ ] Criar app **Next.js (App Router) + TypeScript** com ESLint + Prettier
-- [ ] Configurar **Tailwind CSS + shadcn/ui** (form, dialog, sheet, command, calendar, table)
-- [ ] Estrutura de pastas: `app/`, `components/`, `lib/`, `lib/schemas/`, `server/services/`, `prisma/`, `tests/unit/`, `e2e/`
-- [ ] Path alias `@/` configurado
-- [ ] Validação de variáveis de ambiente com Zod (`env.ts`) — falha rápido se faltar segredo; `env.example` versionado
-- [ ] Configurar **Vitest** (unit) e **Playwright** (e2e) — só o setup; a suíte vem no `014`
+- [x] Inicializar repositório Git + `README.md` com instruções de setup e scripts
+- [x] Criar app **Next.js (App Router) + TypeScript** com ESLint + Prettier
+- [ ] Configurar **Tailwind CSS + shadcn/ui** — base pronta (8 componentes); `dialog`, `sheet`, `command`, `calendar` e `table` entram conforme a tela precisar (012/014)
+- [x] Estrutura de pastas: `app/`, `components/`, `lib/`, `lib/schemas/`, `server/services/`, `prisma/`, `tests/unit/` — `e2e/` será criado na 014
+- [x] Path alias `@/` configurado
+- [x] Validação de variáveis de ambiente com Zod (`env.ts`) — falha rápido se faltar segredo; `env.example` versionado
+- [x] Configurar **Vitest** (unit) e **Playwright** (e2e) — só o setup; a suíte vem no `014`
 
 ## Banco e ORM
 
-- [ ] Provisionar **Postgres gerenciado** (Neon/Railway/RDS) — bancos separados para dev, preview e produção
-- [ ] Inicializar **Prisma**; `DATABASE_URL` fora do versionamento (`.env.local` + secrets da Vercel)
-- [ ] Scripts npm: `dev`, `build`, `lint`, `typecheck`, `test`, `e2e`, `db:migrate`, `db:seed`, `db:studio`
+- [x] Provisionar **Postgres gerenciado** — Supabase criado (⚠️ em us-east-1; recriar em São Paulo antes do piloto)
+- [x] Inicializar **Prisma**; `DATABASE_URL` fora do versionamento (`.env.local` + secrets da Vercel)
+- [x] Scripts npm: `dev`, `build`, `lint`, `typecheck`, `test`, `e2e`, `db:migrate`, `db:seed`, `db:studio`
 
 ## Deploy contínuo
 

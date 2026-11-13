@@ -20,6 +20,7 @@
 - [ ] Migration incluída e aplicada (se mudou o schema)
 - [ ] Isolamento por conta/responsável coberto por teste (quando aplicável)
 - [ ] `.notes/` da tarefa e `.notes/todo.md` atualizados
+- [ ] Critérios de aceite do arquivo `.notes/NNN` conferidos (checkboxes marcados ou pendências explícitas)
 - [ ] Testado no mobile (quando houver UI)
 - [ ] Sem mudanças fora do escopo no diff
 

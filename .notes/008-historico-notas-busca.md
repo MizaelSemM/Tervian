@@ -9,25 +9,25 @@
 
 ## Timeline (RF-40)
 
-- [ ] Tabela `timeline_events` **imutável** (só insert — nunca update/delete)
-- [ ] Serviço único `logEvent()` e política: quais ações geram evento (criar/mover negócio, criar/concluir tarefa, nota, mudança de responsável, ganho/perdido, importação, convite aceito)
-- [ ] Testes garantindo que cada ação-chave gera exatamente **um** evento (sem duplicar, sem faltar)
-- [ ] Linha do tempo na tela do negócio **e** do contato: agrupada por dia, ícone por tipo, autor e horário no fuso da conta
-- [ ] Timeline preservada ao reatribuir carteira (US-05 — quem fez o quê continua registrado)
+- [x] Tabela `timeline_events` **imutável** (só insert — nunca update/delete)
+- [x] Serviço único `logEvent()` e política: quais ações geram evento (criar/mover negócio, criar/concluir tarefa, nota, mudança de responsável, ganho/perdido, importação, convite aceito)
+- [x] Testes garantindo que cada ação-chave gera exatamente **um** evento (sem duplicar, sem faltar)
+- [x] Linha do tempo na tela do negócio **e** do contato: agrupada por dia, ícone por tipo, autor e horário no fuso da conta
+- [x] Timeline preservada ao reatribuir carteira (US-05 — quem fez o quê continua registrado)
 
 ## Notas rápidas (RF-41)
 
-- [ ] Campo de nota no topo da timeline: digita (ou dita pelo teclado do celular) → Enter → salva e aparece
-- [ ] Sem categorias obrigatórias; nota pertence ao negócio e/ou contato
-- [ ] Editar/excluir nota registra evento de alteração (não apaga o fato original)
+- [x] Campo de nota no topo da timeline: digita (ou dita pelo teclado do celular) → Enter → salva e aparece
+- [x] Sem categorias obrigatórias; nota pertence ao negócio e/ou contato
+- [x] Editar/excluir nota registra evento de alteração (não apaga o fato original)
 
 ## Busca global (RF-42)
 
-- [ ] Atalho **Ctrl/Cmd + K** abrindo o command palette (shadcn `command`)
-- [ ] Busca por **nome ou telefone** (funciona com telefone parcial, ex.: "11 98")
-- [ ] Resultado mostra: contato, negócios abertos vinculados, próxima ação e botão WhatsApp direto
-- [ ] Debounce + cache curto; busca escopada por conta (via `004`) e por papel do usuário
-- [ ] Atalho para criar lead a partir da busca quando não houver resultado ("Criar '{termo}'")
+- [x] Atalho **Ctrl/Cmd + K** abrindo o command palette (implementado como modal de busca)
+- [x] Busca por **nome ou telefone** (funciona com telefone parcial, ex.: "11 98")
+- [x] Resultado mostra: contato, negócios abertos vinculados, próxima ação e botão WhatsApp direto
+- [x] Debounce + cache curto; busca escopada por conta (via `004`) e por papel do usuário
+- [x] Atalho para criar lead a partir da busca quando não houver resultado ("Criar '{termo}'")
 
 ## P1 (ver `015`)
 
