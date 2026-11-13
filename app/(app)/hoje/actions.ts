@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { completeTaskSchema, firstFollowupIssueMessage } from "@/lib/schemas/followup";
 import { withSession, type AuthedSession } from "@/lib/session";
 import { AppError } from "@/server/errors";
-import { completeTask } from "@/server/services/followup";
+import { completeTask, undoCompleteTask } from "@/server/services/followup";
 import type { ActingUser } from "@/server/services/owners";
 
 /**
@@ -15,7 +15,10 @@ import type { ActingUser } from "@/server/services/owners";
  * tudo e decide sozinho o dono do negócio, a conta e as regras de fechamento.
  */
 
-export type CompleteTaskActionResult = { ok: true } | { ok: false; error: string };
+export type CompleteTaskActionResult =
+  { ok: true; canUndo: boolean } | { ok: false; error: string };
+
+export type UndoTaskActionResult = { ok: true } | { ok: false; error: string };
 
 const GENERIC_ERROR = "Não foi possível concluir a tarefa. Tente novamente em instantes.";
 
@@ -53,11 +56,40 @@ export async function completeTaskAction(input: unknown): Promise<CompleteTaskAc
       revalidatePath("/contatos");
       revalidatePath(`/contatos/${result.contactId}`);
 
-      return { ok: true };
+      // Fechamento ganho/perdido não é reversível pelo toast; só o follow-up.
+      return { ok: true, canUndo: !result.closed };
     } catch (error) {
       if (error instanceof AppError) return { ok: false, error: error.message };
       console.error("[hoje] Erro ao concluir tarefa:", error);
       return { ok: false, error: GENERIC_ERROR };
+    }
+  });
+}
+
+/** Desfaz a conclusão recente (ação do toast). */
+export async function undoCompleteTaskAction(taskId: string): Promise<UndoTaskActionResult> {
+  return withSession(async (session) => {
+    if (typeof taskId !== "string" || !taskId) {
+      return { ok: false, error: "Tarefa inválida." };
+    }
+
+    try {
+      const result = await undoCompleteTask({
+        taskId,
+        actingUser: actingUserFrom(session),
+      });
+
+      revalidatePath("/");
+      revalidatePath("/hoje");
+      revalidatePath("/negocios");
+      revalidatePath(`/negocios/${result.dealId}`);
+      revalidatePath("/contatos");
+      revalidatePath(`/contatos/${result.contactId}`);
+      return { ok: true };
+    } catch (error) {
+      if (error instanceof AppError) return { ok: false, error: error.message };
+      console.error("[hoje] Erro ao desfazer conclusão:", error);
+      return { ok: false, error: "Não foi possível desfazer. Tente novamente." };
     }
   });
 }

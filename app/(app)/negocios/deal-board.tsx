@@ -136,7 +136,21 @@ export function DealBoard({ stages }: { stages: BoardStage[] }) {
         toast.error(result.error);
         return;
       }
-      toast.success(`Negócio movido para “${toStage.name}”.`);
+      toast.success(`Negócio movido para “${toStage.name}”.`, {
+        action: {
+          label: "Desfazer",
+          onClick: () => {
+            startTransition(async () => {
+              const undo = await moveDealAction(dealId, fromStage.id);
+              if (!undo.ok) {
+                toast.error(undo.error);
+                return;
+              }
+              toast.success(`Negócio devolvido para “${fromStage.name}”.`);
+            });
+          },
+        },
+      });
     });
   }
 
