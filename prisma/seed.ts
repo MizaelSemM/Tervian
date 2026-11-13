@@ -324,8 +324,13 @@ async function main() {
   // Conta e usuários -----------------------------------------------------
   await prisma.account.upsert({
     where: { id: ACCOUNT_ID },
-    create: { id: ACCOUNT_ID, name: "Empresa Demo", plan: "trial" },
-    update: {},
+    create: {
+      id: ACCOUNT_ID,
+      name: "Empresa Demo",
+      plan: "trial",
+      publicFormSlug: "empresa-demo",
+    },
+    update: { publicFormSlug: "empresa-demo" },
   });
 
   await prisma.user.upsert({

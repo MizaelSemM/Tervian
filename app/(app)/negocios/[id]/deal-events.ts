@@ -83,6 +83,29 @@ export function describeTimelineEvent(type: string, payload: unknown): string {
       return "Nota removida.";
     case "deal.deleted":
       return "Negócio removido do funil.";
+    case "lead.captured_form": {
+      const source = text(data, "utmSource");
+      if (data.duplicate === true) {
+        return source
+          ? `Novo contato pelo formulário (origem: ${source}).`
+          : "Novo contato pelo formulário.";
+      }
+      return source
+        ? `Lead capturado pelo formulário (origem: ${source}).`
+        : "Lead capturado pelo formulário.";
+    }
+    case "contact.created":
+      return "Contato criado.";
+    case "contact.updated":
+      return "Contato atualizado.";
+    case "contact.deleted":
+      return "Contato removido.";
+    case "import.completed": {
+      const imported = typeof data.imported === "number" ? data.imported : null;
+      return imported !== null
+        ? `Importação concluída: ${imported} contatos.`
+        : "Importação de contatos concluída.";
+    }
     default:
       return `Evento: ${type}.`;
   }

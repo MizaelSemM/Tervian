@@ -6,11 +6,15 @@ import { submitPublicLeadAction, type PublicLeadState } from "./actions";
 
 export function PublicLeadForm({
   slug,
+  thankYouMessage,
+  whatsappUrl,
   utmSource,
   utmMedium,
   utmCampaign,
 }: {
   slug: string;
+  thankYouMessage: string;
+  whatsappUrl: string | null;
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;
@@ -29,9 +33,17 @@ export function PublicLeadForm({
     return (
       <div className="rounded-2xl border border-border bg-background p-6 text-center">
         <h2 className="text-2xl font-semibold">Recebemos seu contato</h2>
-        <p className="mt-2 text-muted-foreground">
-          Obrigado! Nossa equipe entrará em contato em breve.
-        </p>
+        <p className="mt-2 text-muted-foreground">{thankYouMessage}</p>
+        {whatsappUrl && (
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-5 inline-flex h-12 items-center justify-center rounded-xl bg-primary px-5 text-base font-medium text-primary-foreground"
+          >
+            Falar no WhatsApp
+          </a>
+        )}
       </div>
     );
   }
@@ -66,6 +78,7 @@ export function PublicLeadForm({
         <input
           name="phone"
           required
+          type="tel"
           inputMode="tel"
           autoComplete="tel"
           className="h-12 rounded-xl border border-input bg-transparent px-4 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
