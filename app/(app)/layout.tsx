@@ -62,6 +62,14 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
               Equipe
             </Link>
           )}
+          {session.user.role === "ADMIN" && (
+            <Link
+              href="/configuracoes"
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Configurações
+            </Link>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <GlobalSearch />

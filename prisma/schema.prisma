@@ -68,6 +68,18 @@ model Account {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  // Formulário público de captura (tarefa 010). O slug é global e estável
+  // (usado no link da bio do Instagram); `id` continua funcionando como
+  // fallback para links antigos.
+  publicFormSlug     String?  @unique @map("public_form_slug")
+  publicFormEnabled  Boolean  @default(true) @map("public_form_enabled")
+  publicFormTitle    String?  @map("public_form_title")
+  publicFormMessage  String?  @map("public_form_message")
+  publicFormWhatsapp String?  @map("public_form_whatsapp")
+  publicFormOwnerId  String?  @unique @map("public_form_owner_id")
+
+  publicFormOwner User? @relation("AccountPublicFormOwner", fields: [publicFormOwnerId], references: [id], onDelete: SetNull)
+
   users            User[]
   contacts         Contact[]
   pipelines        Pipeline[]
@@ -105,6 +117,7 @@ model User {
   sessions       Session[]
   authAccounts   AuthAccount[]
   invitesCreated Invite[]        @relation("InviteCreatedBy")
+  publicFormFor  Account?        @relation("AccountPublicFormOwner")
 
   @@index([accountId])
   @@map("users")

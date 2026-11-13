@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { runWithSignupContext } from "@/lib/auth-signup-context";
 import { prismaBase } from "@/lib/prisma";
+import { generatePublicFormSlug } from "@/lib/public-form";
 import type { SignUpCompanyInput } from "@/lib/schemas/auth";
 import { isAlreadyExistsError } from "@/server/auth-errors";
 import { AppError } from "@/server/errors";
@@ -34,7 +35,7 @@ export async function signUpCompany(
     );
   }
 
-  const account = await prismaBase.account.create({ data: { name: input.companyName } });
+  const account = await createAccount(input.companyName);
 
   try {
     await createDefaultPipelineForAccount(account.id);
@@ -61,6 +62,31 @@ export async function signUpCompany(
       "Não foi possível criar a conta agora. Tente novamente em instantes.",
     );
   }
+}
+
+/**
+ * Cria a conta já com um link público legível (`/f/loja-da-carla-a1b2`).
+ * O sufixo aleatório evita colisão; em caso de corrida, tenta de novo.
+ */
+async function createAccount(companyName: string) {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await prismaBase.account.create({
+        data: {
+          name: companyName,
+          publicFormSlug: generatePublicFormSlug(companyName),
+        },
+      });
+    } catch (error) {
+      const isSlugConflict =
+        typeof error === "object" &&
+        error !== null &&
+        (error as { code?: string }).code === "P2002";
+      if (!isSlugConflict || attempt === 2) throw error;
+    }
+  }
+  // Inalcançável: o laço retorna ou lança.
+  throw new AppError("SIGNUP_FAILED", "Não foi possível criar a conta agora.");
 }
 
 /**
