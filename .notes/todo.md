@@ -1,7 +1,7 @@
 # ✅ TODO — CRM de Follow-up para Pequenas Equipes de Vendas (MVP)
 
 **Fonte:** [PRD – CRM de Follow-up para Pequenas Equipes de Vendas (MVP)](<../PRD – CRM de Follow-up para Pequenas Equipes de Vendas (MVP).md>)
-**Atualizado em:** 30/10/2026 · **Fase atual:** 2 — CRM essencial · **Prazo recalibrado: ~6–8 semanas** (ritmo ~20–25h/semana)
+**Atualizado em:** 13/11/2026 · **Fase atual:** 3 — Qualidade e lançamento · **Prazo recalibrado: ~6–8 semanas** (ritmo ~20–25h/semana)
 
 ---
 
@@ -20,6 +20,16 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
 
 ## ⏳ Em Progresso
 
+- [ ] **Fechamento P0 — 009 e 010** → [009-importacao-csv.md](009-importacao-csv.md) · [010-formulario-publico.md](010-formulario-publico.md)
+  - [ ] 009: processamento em chunks com progresso, decisão de duplicado e fixture de 5.000 linhas
+  - [ ] 010: configuração do formulário (ativar, título, mensagem, responsável) + snippet de embed
+- [ ] **012 · PWA, mobile-first e UX de um clique** → começa depois do fechamento acima (ver [012-pwa-ux-mobile.md](012-pwa-ux-mobile.md))
+
+> ⚠️ **Revisão de 13/11/2026:** o quadro marcava 008–011 como concluídas, mas 009 e 010 ainda têm critérios de aceite abertos (ver os arquivos). 008 e 011 estão implementadas; falta só fechar a documentação de aceite.
+> Migrations no Supabase: usar `npm run db:migrate` (create-only + deploy) — o pooler não suporta o shadow database do `migrate dev` (ver 002).
+
+## ⏸️ Aguardando terceiros (não bloqueia código)
+
 - [ ] **001 · Fundação: repositório, stack e infra mínima** → [001-fundacao-setup.md](001-fundacao-setup.md)
   - [x] Scaffold Next.js 16 + TypeScript + Tailwind + ESLint
   - [x] Git + README do projeto + marca (pt-BR)
@@ -31,13 +41,10 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
   - [x] `prisma init` + `prisma generate` validados (client gerado em `lib/generated/prisma`)
   - [x] shadcn/ui inicializado + 8 componentes base (button, input, label, card, skeleton, sonner, badge, separator)
   - [x] Build de produção, lint e typecheck passando
-  - [x] Supabase: projeto criado e `.env` preenchido (⚠️ região **us-east-1** — recriar em São Paulo antes do piloto; ver `000`)
   - [x] CI (GitHub Actions) com Postgres efêmero, migrations, lint, typecheck, testes e build
   - [ ] Vercel + Sentry + PostHog → **precisam das contas do dono**
   - [ ] Resend → conta + domínio verificado para e-mails reais de convite/reset (em dev o link cai no console)
-
-> ✅ **007 concluída** (motor de follow-up, tela “Hoje” em `/` → `/hoje`, conclusão em 2 toques, contadores, filtro por vendedor, fuso da conta, follow-up transacional e fechamento preservando a tarefa concluída; 27 testes novos, 132 verdes). Próxima de código: **008 · Histórico, notas e busca global**.
-> Migrations no Supabase: usar `npm run db:migrate` (create-only + deploy) — o pooler não suporta o shadow database do `migrate dev` (ver 002).
+  - [ ] Supabase: recriar o projeto em **São Paulo** antes do piloto (hoje está em us-east-1; sem dados reais, é só trocar as strings do `.env` — ver `000`)
 
 ---
 
@@ -55,8 +62,8 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
 ### Bloco 5 — Contexto e entradas *(semana 5)*
 
 - [x] **008 · Histórico, notas e busca global** (RF-40..RF-42) → [008-historico-notas-busca.md](008-historico-notas-busca.md)
-- [x] **009 · Importação de CSV** (RF-11, US-06) → [009-importacao-csv.md](009-importacao-csv.md)
-- [x] **010 · Formulário público de captura** (RF-12) → [010-formulario-publico.md](010-formulario-publico.md)
+- [ ] **009 · Importação de CSV** (RF-11, US-06) → [009-importacao-csv.md](009-importacao-csv.md) — **fechamento P0 em andamento**
+- [ ] **010 · Formulário público de captura** (RF-12) → [010-formulario-publico.md](010-formulario-publico.md) — **fechamento P0 em andamento**
 
 ### Bloco 6 — Gestor *(semana 5–6)*
 
@@ -91,6 +98,8 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
 - [x] 23/10/2026 — **005 · Contatos e captura rápida concluída**: `createLead()` transacional (contato + negócio “Novo” + tarefa “Primeiro contato” para hoje + timeline), funil padrão criado no cadastro e garantido para contas antigas, `/contatos` com busca/paginação, edição, exclusão lógica com limpeza de negócios abertos e WhatsApp/ligar em lista e detalhe — 21 testes novos (74 verdes no total), build/lint/typecheck ✓
 - [x] 24/10/2026 — **006 · Funil e negócios concluída**: kanban com dnd-kit + Server Action otimista, lista mobile/paginada e alternador de visão, cards com valor/contato/responsável/previsão/dias sem atividade/próxima ação, mover etapa com timeline e próxima ação obrigatória, fechamento ganho (valor final) e perdido (motivo obrigatório), detalhe com timeline/tarefas/notas e “Adiar 1 dia” com desfazer, isolamento de vendedor na query — 31 testes novos (105 verdes no total), typecheck/lint/build e verificação manual em produção ✓
 - [x] 30/10/2026 — **007 · Motor de follow-up + tela “Hoje” concluída**: raiz do app vira a fila do dia, fuso da conta (com horário de verão), atrasadas/hoje/concluídas, WhatsApp/ligar/concluir com alvos grandes, resultado + próxima ação em 2 toques, conclusão otimista, filtro por vendedor para admin, follow-up transacional e fechamento ganho/perdido preservando a tarefa concluída — 27 testes novos (132 verdes no total), “Hoje” com 200 tarefas em < 2s, typecheck/lint/build ✓
+- [x] 07/11/2026 — **008 · Histórico, notas e busca global concluída**: timeline imutável com `logEvent()`, notas rápidas com edição/exclusão, busca global por nome/telefone com Ctrl/Cmd+K, resultados com negócios abertos e WhatsApp, atalho para criar lead — implementação no `master`; checkboxes do arquivo de detalhe serão fechados na revisão de aceite
+- [x] 08/11/2026 — **011 · Painel do gestor concluída**: KPIs de funil, previsão ponderada, negócios parados, sem próxima ação, atividade por vendedor, filtros de período/parados e reatribuição em lote na carteira — implementação no `master`; checkboxes do arquivo de detalhe serão fechados na revisão de aceite
 
 ---
 
