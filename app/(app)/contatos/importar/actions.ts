@@ -1,12 +1,16 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+
+import { importChunkInputSchema, importFinishedInputSchema } from "@/lib/schemas/import";
 import { withSession, type AuthedSession } from "@/lib/session";
 import { AppError } from "@/server/errors";
 import {
   IMPORT_MAX_BYTES,
-  importContactsCsv,
+  emptyImportResult,
+  importRowsChunk,
+  logImportCompleted,
   parseImportCsv,
-  type ImportColumnMapping,
   type ImportPreview,
   type ImportResult,
 } from "@/server/services/import";
@@ -22,7 +26,8 @@ function actingUserFrom(session: AuthedSession): ActingUser {
 export type PreviewActionResult =
   { ok: true; preview: ImportPreview } | { ok: false; error: string };
 
-export type ImportActionResult = { ok: true; result: ImportResult } | { ok: false; error: string };
+export type ImportChunkActionResult =
+  { ok: true; result: ImportResult } | { ok: false; error: string };
 
 export async function previewImportAction(formData: FormData): Promise<PreviewActionResult> {
   return withSession(async () => {
@@ -42,38 +47,56 @@ export async function previewImportAction(formData: FormData): Promise<PreviewAc
   });
 }
 
-export async function runImportAction(formData: FormData): Promise<ImportActionResult> {
+/**
+ * Importa um lote de até 100 linhas. O client chama em sequência e atualiza a
+ * barra de progresso; cada chamada é uma transação curta, sem risco de timeout.
+ */
+export async function importContactsChunkAction(input: unknown): Promise<ImportChunkActionResult> {
   return withSession(async (session) => {
-    const file = formData.get("file");
-    if (!(file instanceof File)) return { ok: false, error: "Selecione um arquivo CSV." };
-    if (file.size > IMPORT_MAX_BYTES) return { ok: false, error: "O arquivo é maior que 5 MB." };
-
-    const baseLegal = formData.get("baseLegal") === "on";
-    if (!baseLegal) return { ok: false, error: "Confirme a base legal para importar os dados." };
-
-    let mapping: ImportColumnMapping | undefined;
-    const mappingRaw = formData.get("mapping");
-    if (typeof mappingRaw === "string" && mappingRaw.trim()) {
-      try {
-        mapping = JSON.parse(mappingRaw) as ImportColumnMapping;
-      } catch {
-        return { ok: false, error: "Mapeamento de colunas inválido." };
-      }
+    const parsed = importChunkInputSchema.safeParse(input);
+    if (!parsed.success) {
+      return {
+        ok: false,
+        error: parsed.error.issues[0]?.message ?? "Lote de importação inválido.",
+      };
     }
 
     try {
-      const buffer = await file.arrayBuffer();
-      const result = await importContactsCsv({
+      const result = await importRowsChunk({
         actingUser: actingUserFrom(session),
-        buffer,
-        mapping,
-        baseLegal,
+        ...parsed.data,
       });
       return { ok: true, result };
     } catch (error) {
       if (error instanceof AppError) return { ok: false, error: error.message };
-      console.error("[importacao] Erro ao importar CSV:", error);
-      return { ok: false, error: "Não foi possível importar o arquivo." };
+      console.error("[importacao] Erro ao importar lote:", error);
+      return { ok: false, error: "Não foi possível importar este lote." };
+    }
+  });
+}
+
+/** Fecha a importação: registra o evento único e invalida as telas afetadas. */
+export async function finishImportAction(input: unknown): Promise<{ ok: boolean; error?: string }> {
+  return withSession(async (session) => {
+    const parsed = importFinishedInputSchema.safeParse(input);
+    if (!parsed.success) return { ok: false, error: "Resumo da importação inválido." };
+
+    try {
+      await logImportCompleted({
+        actingUser: actingUserFrom(session),
+        result: { ...emptyImportResult(), ...parsed.data, errors: [] },
+      });
+      revalidatePath("/contatos");
+      revalidatePath("/hoje");
+      revalidatePath("/negocios");
+      revalidatePath("/painel");
+      return { ok: true };
+    } catch (error) {
+      console.error("[importacao] Erro ao finalizar importação:", error);
+      return {
+        ok: false,
+        error: "A importação terminou, mas não foi possível registrar o resumo.",
+      };
     }
   });
 }

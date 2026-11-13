@@ -20,12 +20,12 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
 
 ## ⏳ Em Progresso
 
-- [ ] **Fechamento P0 — 009 e 010** → [009-importacao-csv.md](009-importacao-csv.md) · [010-formulario-publico.md](010-formulario-publico.md)
-  - [ ] 009: processamento em chunks com progresso, decisão de duplicado e fixture de 5.000 linhas
+- [ ] **Fechamento P0 — 010** → [010-formulario-publico.md](010-formulario-publico.md)
+  - [x] 009: processamento em chunks com progresso, decisão de duplicado e fixture de 5.000 linhas
   - [ ] 010: configuração do formulário (ativar, título, mensagem, responsável) + snippet de embed
 - [ ] **012 · PWA, mobile-first e UX de um clique** → começa depois do fechamento acima (ver [012-pwa-ux-mobile.md](012-pwa-ux-mobile.md))
 
-> ⚠️ **Revisão de 13/11/2026:** o quadro marcava 008–011 como concluídas, mas 009 e 010 ainda têm critérios de aceite abertos (ver os arquivos). 008 e 011 estão implementadas; falta só fechar a documentação de aceite.
+> ⚠️ **Revisão de 13/11/2026:** o quadro marcava 008–011 como concluídas, mas 009 e 010 ainda tinham critérios de aceite abertos. 008, 009 e 011 estão implementadas; falta fechar a 010.
 > Migrations no Supabase: usar `npm run db:migrate` (create-only + deploy) — o pooler não suporta o shadow database do `migrate dev` (ver 002).
 
 ## ⏸️ Aguardando terceiros (não bloqueia código)
@@ -62,7 +62,7 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
 ### Bloco 5 — Contexto e entradas *(semana 5)*
 
 - [x] **008 · Histórico, notas e busca global** (RF-40..RF-42) → [008-historico-notas-busca.md](008-historico-notas-busca.md)
-- [ ] **009 · Importação de CSV** (RF-11, US-06) → [009-importacao-csv.md](009-importacao-csv.md) — **fechamento P0 em andamento**
+- [x] **009 · Importação de CSV** (RF-11, US-06) → [009-importacao-csv.md](009-importacao-csv.md) — lotes de 100 linhas com progresso, decisão de duplicado e fixture de 5.000 linhas
 - [ ] **010 · Formulário público de captura** (RF-12) → [010-formulario-publico.md](010-formulario-publico.md) — **fechamento P0 em andamento**
 
 ### Bloco 6 — Gestor *(semana 5–6)*
@@ -99,7 +99,8 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
 - [x] 24/10/2026 — **006 · Funil e negócios concluída**: kanban com dnd-kit + Server Action otimista, lista mobile/paginada e alternador de visão, cards com valor/contato/responsável/previsão/dias sem atividade/próxima ação, mover etapa com timeline e próxima ação obrigatória, fechamento ganho (valor final) e perdido (motivo obrigatório), detalhe com timeline/tarefas/notas e “Adiar 1 dia” com desfazer, isolamento de vendedor na query — 31 testes novos (105 verdes no total), typecheck/lint/build e verificação manual em produção ✓
 - [x] 30/10/2026 — **007 · Motor de follow-up + tela “Hoje” concluída**: raiz do app vira a fila do dia, fuso da conta (com horário de verão), atrasadas/hoje/concluídas, WhatsApp/ligar/concluir com alvos grandes, resultado + próxima ação em 2 toques, conclusão otimista, filtro por vendedor para admin, follow-up transacional e fechamento ganho/perdido preservando a tarefa concluída — 27 testes novos (132 verdes no total), “Hoje” com 200 tarefas em < 2s, typecheck/lint/build ✓
 - [x] 07/11/2026 — **008 · Histórico, notas e busca global concluída**: timeline imutável com `logEvent()`, notas rápidas com edição/exclusão, busca global por nome/telefone com Ctrl/Cmd+K, resultados com negócios abertos e WhatsApp, atalho para criar lead — implementação no `master`; checkboxes do arquivo de detalhe serão fechados na revisão de aceite
-- [x] 08/11/2026 — **011 · Painel do gestor concluída**: KPIs de funil, previsão ponderada, negócios parados, sem próxima ação, atividade por vendedor, filtros de período/parados e reatribuição em lote na carteira — implementação no `master`; checkboxes do arquivo de detalhe serão fechados na revisão de aceite
+- [x] 08/11/2026 — **011 · Painel do gestor concluída**: KPIs de funil, previsão ponderada, negócios parados, sem próxima ação, atividade por vendedor, filtros de período/parados e reatribuição em lote na carteira — implementação no `master`; checkboxes do arquivo fechados na revisão de aceite
+- [x] 13/11/2026 — **009 · Importação de CSV concluída**: lotes de 100 linhas via Server Action com barra de progresso e cancelamento, mapeamento automático de colunas, Latin-1/Windows-1252, separador `;`/`,`/tab, decisão de duplicado (ignorar/atualizar/criar negócio), opção “só contatos”, relatório com CSV de erros e fixture de 5.000 linhas no CI — 6 testes novos (80 unitários verdes)
 
 ---
 

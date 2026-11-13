@@ -2,9 +2,20 @@
 
 import Link from "next/link";
 import { useRef, useState, useTransition } from "react";
+import { toast } from "sonner";
 
-import { previewImportAction, runImportAction } from "./actions";
-import type { ImportColumnMapping, ImportPreview, ImportResult } from "@/server/services/import";
+import { finishImportAction, importContactsChunkAction, previewImportAction } from "./actions";
+import {
+  IMPORT_CHUNK_SIZE,
+  dedupeRows,
+  emptyImportResult,
+  type ImportChunkRow,
+  type ImportColumnMapping,
+  type ImportDuplicateAction,
+  type ImportPreview,
+  type ImportResult,
+  type ImportRow,
+} from "@/lib/import";
 
 const FIELD_LABELS: Record<keyof ImportColumnMapping, string> = {
   name: "Nome",
@@ -15,14 +26,47 @@ const FIELD_LABELS: Record<keyof ImportColumnMapping, string> = {
   tags: "Tags",
 };
 
+const DUPLICATE_OPTIONS: Array<{ value: ImportDuplicateAction; label: string }> = [
+  { value: "skip", label: "Ignorar (padrão)" },
+  { value: "update", label: "Atualizar o contato existente" },
+  { value: "create", label: "Criar um novo negócio para o contato" },
+];
+
+function toChunkRow(row: ImportRow): ImportChunkRow {
+  return {
+    rowNumber: row.rowNumber,
+    name: row.name,
+    phone: row.phone,
+    email: row.email,
+    companyText: row.companyText,
+    origin: row.origin,
+    raw: row.raw,
+  };
+}
+
+function addResult(target: ImportResult, part: ImportResult) {
+  target.total += part.total;
+  target.imported += part.imported;
+  target.updated += part.updated;
+  target.dealsCreated += part.dealsCreated;
+  target.duplicates += part.duplicates;
+  target.ignored += part.ignored;
+  target.errors.push(...part.errors);
+}
+
 export function ImportCsvView() {
   const fileRef = useRef<HTMLInputElement>(null);
+  const cancelRef = useRef(false);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [mapping, setMapping] = useState<ImportColumnMapping>({});
   const [baseLegal, setBaseLegal] = useState(false);
+  const [duplicateAction, setDuplicateAction] = useState<ImportDuplicateAction>("skip");
+  const [onlyContacts, setOnlyContacts] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [running, setRunning] = useState(false);
   const [pending, startTransition] = useTransition();
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -31,6 +75,7 @@ export function ImportCsvView() {
     setPreview(null);
     setResult(null);
     setError(null);
+    setProgress(null);
   }
 
   function handlePreview() {
@@ -49,25 +94,80 @@ export function ImportCsvView() {
       setError(null);
       setPreview(response.preview);
       setMapping(response.preview.mapping);
+      setResult(null);
     });
   }
 
-  function handleImport() {
-    if (!file || !preview) return;
-    const formData = new FormData();
-    formData.set("file", file);
-    formData.set("mapping", JSON.stringify(mapping));
-    if (baseLegal) formData.set("baseLegal", "on");
+  async function handleImport() {
+    if (!file || !preview || !baseLegal || running) return;
 
-    startTransition(async () => {
-      const response = await runImportAction(formData);
-      if (!response.ok) {
-        setError(response.error);
-        return;
+    const { rows: rowsToSend, errors: localErrors } = dedupeRows(preview.rows);
+    const aggregated = emptyImportResult();
+    aggregated.total = preview.total;
+    aggregated.duplicates = localErrors.length;
+    aggregated.errors.push(...localErrors);
+
+    cancelRef.current = false;
+    setError(null);
+    setResult(null);
+    setRunning(true);
+    setProgress({ done: 0, total: rowsToSend.length });
+
+    let processed = 0;
+    try {
+      for (let index = 0; index < rowsToSend.length; index += IMPORT_CHUNK_SIZE) {
+        if (cancelRef.current) break;
+
+        const chunk = rowsToSend.slice(index, index + IMPORT_CHUNK_SIZE);
+        const response = await importContactsChunkAction({
+          rows: chunk.map(toChunkRow),
+          duplicateAction,
+          onlyContacts,
+          baseLegal: true,
+        });
+
+        if (!response.ok) {
+          setError(response.error);
+          toast.error(response.error);
+          break;
+        }
+
+        addResult(aggregated, response.result);
+        processed += chunk.length;
+        setProgress({ done: processed, total: rowsToSend.length });
       }
-      setError(null);
-      setResult(response.result);
-    });
+
+      // O total do relatório é o que realmente passou pelo servidor (+ duplicados
+      // detectados no próprio arquivo). Se cancelar, o parcial fica visível.
+      aggregated.total = processed + localErrors.length;
+
+      if (cancelRef.current) {
+        toast.message("Importação cancelada. As linhas já enviadas foram mantidas.");
+      } else {
+        const finish = await finishImportAction({
+          imported: aggregated.imported,
+          updated: aggregated.updated,
+          dealsCreated: aggregated.dealsCreated,
+          duplicates: aggregated.duplicates,
+          ignored: aggregated.ignored,
+          errors: aggregated.errors.length,
+        });
+        if (!finish.ok && finish.error) toast.error(finish.error);
+        else {
+          toast.success(
+            `${aggregated.imported} contatos importados, ${aggregated.updated} atualizados e ${aggregated.dealsCreated} novos negócios.`,
+          );
+        }
+      }
+
+      setResult(aggregated);
+    } catch (importError) {
+      console.error("[importacao] Falha inesperada:", importError);
+      setError("A importação foi interrompida. O relatório parcial está abaixo.");
+      setResult(aggregated);
+    } finally {
+      setRunning(false);
+    }
   }
 
   function downloadErrors() {
@@ -89,6 +189,9 @@ export function ImportCsvView() {
     URL.revokeObjectURL(url);
   }
 
+  const progressPercent =
+    progress && progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
+
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <div className="flex items-center justify-between gap-4">
@@ -108,15 +211,16 @@ export function ImportCsvView() {
         <input
           ref={fileRef}
           type="file"
-          accept=".csv,text/csv,text/plain"
+          accept=".csv,.tsv,text/csv,text/tab-separated-values,text/plain"
           onChange={handleFileChange}
+          disabled={running}
           className="block w-full text-sm"
         />
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <button
             type="button"
             onClick={handlePreview}
-            disabled={!file || pending}
+            disabled={!file || pending || running}
             className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground disabled:opacity-60"
           >
             {pending && !preview ? "Lendo..." : "Pré-visualizar"}
@@ -150,6 +254,7 @@ export function ImportCsvView() {
                       [field]: event.target.value === "" ? undefined : Number(event.target.value),
                     }))
                   }
+                  disabled={running}
                   className="rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm"
                 >
                   <option value="">Não usar</option>
@@ -161,6 +266,43 @@ export function ImportCsvView() {
                 </select>
               </label>
             ))}
+          </div>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="text-muted-foreground">Quando o telefone já existir</span>
+              <select
+                value={duplicateAction}
+                onChange={(event) =>
+                  setDuplicateAction(event.target.value as ImportDuplicateAction)
+                }
+                disabled={running}
+                className="rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm"
+              >
+                {DUPLICATE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex items-start gap-2 text-sm sm:mt-6">
+              <input
+                type="checkbox"
+                checked={onlyContacts}
+                onChange={(event) => setOnlyContacts(event.target.checked)}
+                disabled={running || duplicateAction === "create"}
+                className="mt-1"
+              />
+              <span>
+                Importar apenas contatos (sem negócio nem tarefa de primeiro contato)
+                {duplicateAction === "create" && (
+                  <span className="block text-xs text-muted-foreground">
+                    Indisponível no modo “criar novo negócio”.
+                  </span>
+                )}
+              </span>
+            </label>
           </div>
 
           <div className="mt-4 overflow-x-auto">
@@ -199,31 +341,62 @@ export function ImportCsvView() {
               type="checkbox"
               checked={baseLegal}
               onChange={(event) => setBaseLegal(event.target.checked)}
+              disabled={running}
               className="mt-1"
             />
             <span>Declaro que tenho base legal para tratar estes dados, conforme a LGPD.</span>
           </label>
 
+          {progress && running && (
+            <div className="mt-4 flex flex-col gap-1" aria-live="polite">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>
+                  Importando {progress.done} de {progress.total} linhas…
+                </span>
+                <span>{progressPercent}%</span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full bg-primary transition-[width]"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
+          )}
+
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <button
               type="button"
               onClick={handleImport}
-              disabled={pending || !baseLegal}
+              disabled={running || !baseLegal}
               className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground disabled:opacity-60"
             >
-              {pending ? "Importando..." : "Importar"}
+              {running ? "Importando..." : `Importar ${preview.total} linhas`}
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                setPreview(null);
-                setResult(null);
-                setError(null);
-              }}
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              Cancelar
-            </button>
+            {running ? (
+              <button
+                type="button"
+                onClick={() => {
+                  cancelRef.current = true;
+                }}
+                className="text-sm text-destructive hover:underline"
+              >
+                Cancelar importação
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setPreview(null);
+                  setResult(null);
+                  setError(null);
+                  setProgress(null);
+                }}
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                Cancelar
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -232,7 +405,8 @@ export function ImportCsvView() {
         <div className="rounded-xl border border-border p-4">
           <h2 className="text-lg font-semibold">Resultado da importação</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {result.total} linhas · {result.imported} importadas · {result.duplicates} duplicadas ·{" "}
+            {result.total} linhas processadas · {result.imported} importadas · {result.updated}{" "}
+            atualizadas · {result.dealsCreated} novos negócios · {result.duplicates} duplicadas ·{" "}
             {result.ignored} ignoradas · {result.errors.length} erros
           </p>
           {result.errors.length > 0 && (
