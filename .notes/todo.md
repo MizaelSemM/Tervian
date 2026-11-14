@@ -20,7 +20,7 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
 
 ## ⏳ Em Progresso
 
-- [ ] **013 · Segurança, LGPD e observabilidade** → [013-seguranca-lgpd-observabilidade.md](013-seguranca-lgpd-observabilidade.md) — código implementado e migrations aplicadas; faltam credenciais de Sentry/PostHog, env da Vercel (cadastro com P1000), restore de backup e monitor de uptime (dependem do painel do dono)
+- [ ] **013 · Segurança, LGPD e observabilidade** → [013-seguranca-lgpd-observabilidade.md](013-seguranca-lgpd-observabilidade.md) — código implementado, migrations aplicadas e cadastro validado em produção; faltam credenciais de Sentry/PostHog, restore de backup e monitor de uptime (dependem do painel do dono)
 - [ ] **012 · PWA, mobile-first e UX de um clique** → [012-pwa-ux-mobile.md](012-pwa-ux-mobile.md) — base implementada; faltam medições (4G/Lighthouse) e teste em aparelho real
 
 > ⚠️ **Revisão de 13/11/2026:** o quadro marcava 008–011 como concluídas, mas 009 e 010 ainda tinham critérios de aceite abertos. 009 e 010 foram fechadas; 008 e 011 já estavam implementadas.
@@ -105,6 +105,7 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
 - [x] 14/11/2026 — **013 · Segurança, LGPD e observabilidade — código implementado**: headers/CSP + noindex no proxy, termos e política em `/termos` e `/privacidade` com aceite versionado no cadastro, exportação JSON e exclusão definitiva por contato, documento de operação LGPD, Sentry/PostHog sem SDK e com PII higienizada, eventos do PRD padronizados, dashboard das 6 métricas em `/painel/metricas`, Dependabot + `npm audit` no CI — 97 testes unitários verdes; faltam credenciais, migrations, restore de backup e monitor de uptime
 - [x] 14/11/2026 — **Dependabot em dia**: PRs #14–#17 mergeados (Actions e grupo minor/patch), majors de TypeScript e `@types/node` ignorados no `.github/dependabot.yml`; PRs #18, #19 e #7 fechados
 - [x] 14/11/2026 — **014 · Testes e QA concluída**: 165 testes de unidade/integração e 18 E2E (14 verdes, 4 skip mobile) verdes no CI; correções de preservação do formulário, seletor `role=alert`, destino `/hoje` e `dealsCreated` da importação — cobertura mínima de `server/services/` fica como melhoria da 016
+- [x] 14/11/2026 — **Cadastro em produção validado**: o `P1000` sumiu após o deploy do `master` com a env correta; um signup real criou a conta e caiu em `/hoje`, e a conta de teste foi removida em seguida
 
 ---
 

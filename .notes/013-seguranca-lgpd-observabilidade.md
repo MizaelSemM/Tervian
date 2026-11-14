@@ -77,10 +77,10 @@
        `20261113160000_add_account_terms` (013) com `npm run db:migrate` — aplicadas em
        14/11/2026 e verificadas em `_prisma_migrations`.
 2. [ ] Configurar `SENTRY_DSN`, `NEXT_PUBLIC_POSTHOG_KEY` e `NEXT_PUBLIC_POSTHOG_HOST` na Vercel.
-3. [ ] Corrigir `DATABASE_URL` e `DIRECT_URL` na Vercel (Production e Preview) e fazer
-       **Redeploy**: o cadastro em produção ainda falha com `P1000` porque a env aponta para
-       credenciais antigas do Supabase. O `.env` local conecta normalmente no pooler
-       `aws-1-sa-east-1.pooler.supabase.com:5432` com o usuário `postgres.<ref>`.
+3. [x] Corrigir `DATABASE_URL` e `DIRECT_URL` na Vercel (Production e Preview) e fazer
+       **Redeploy** — validado em produção em 14/11/2026: o deploy novo do `master` passou
+       a usar a env correta, o `P1000` sumiu e um signup real criou a conta e caiu em
+       `/hoje` (conta de teste removida em seguida).
 4. [ ] Executar e documentar o teste de restore do backup diário do Postgres.
 5. [ ] Ativar o monitor de uptime (99,5%) com alerta por e-mail/WhatsApp.
 6. [ ] Criar o alerta de erros novos no Sentry e o projeto do PostHog com os eventos acima.
