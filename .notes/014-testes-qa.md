@@ -2,37 +2,74 @@
 
 **Requisitos:** seção 13 (Vitest + Playwright), seção 19 (critérios de lançamento)
 **Prioridade:** P0 · **Depende de:** 001 (setup) · cobre 003–011 · **Bloqueia:** `016`
+**Status:** suíte implementada em 14/11/2026; E2E será validado no CI (o ambiente local não tem Postgres).
 
 ---
 
 ## Unitário (Vitest)
 
-- [ ] Regra de follow-up: negócio aberto **nunca** fica sem próxima ação (criar, mover etapa, editar, concluir)
-- [ ] Conclusão de tarefa exige resultado/próxima ação — exceto ganho/perdido
-- [ ] `createLead()`: cria contato + negócio "Novo" + tarefa para hoje; duplicado não duplica
-- [ ] Normalização de telefone BR/E.164 (casos: `+55`, `0` na frente, 9º dígito, DDD inválido)
-- [ ] Previsão do mês = Σ(valor × probabilidade) e demais agregações do painel
-- [ ] Schemas Zod por entidade: entradas inválidas rejeitadas no servidor (não confiar no client)
-- [ ] **Isolamento entre contas** (detalhado no `004`) — obrigatório no CI
+Critérios cobertos pela suíte existente (unit + integração, rodam no CI com Postgres efêmero):
+
+- [x] Regra de follow-up: negócio aberto **nunca** fica sem próxima ação (criar, mover etapa,
+      editar, concluir) — `tests/integration/followup.test.ts`, `deals.test.ts` e
+      `tests/unit/` dos schemas.
+- [x] Conclusão de tarefa exige resultado/próxima ação — exceto ganho/perdido —
+      `tests/integration/followup.test.ts`.
+- [x] `createLead()`: cria contato + negócio "Novo" + tarefa para hoje; duplicado não duplica —
+      `tests/integration/leads.test.ts`.
+- [x] Normalização de telefone BR/E.164 (`+55`, zero à frente, 9º dígito, DDD inválido) —
+      `tests/unit/phone.test.ts`.
+- [x] Previsão do mês = Σ(valor × probabilidade) e agregações do painel —
+      `tests/unit/dashboard.test.ts`.
+- [x] Schemas Zod por entidade rejeitam entrada inválida no servidor —
+      `tests/unit/*-schemas.test.ts` + `privacy.test.ts`.
+- [x] **Isolamento entre contas** — `tests/integration/tenant-isolation.test.ts`, obrigatório no CI.
 
 ## E2E (Playwright)
 
-- [ ] Fluxo "Hoje" completo: atrasadas primeiro → WhatsApp → concluir → resultado → próxima ação → próxima tarefa
-- [ ] Cadastro de lead em < 20s, incluindo aviso de duplicado (US-03)
-- [ ] Kanban: arrastar entre etapas persiste após recarregar
-- [ ] Fechar como perdido sem motivo é bloqueado; com motivo funciona
-- [ ] Importação CSV com fixture de 5.000 linhas e relatório conferido
-- [ ] Formulário público cria lead e ele aparece em "Hoje" do responsável
-- [ ] Convite → cadastro → login com papel correto (vendedor não acessa painel admin)
-- [ ] **Performance:** "Hoje" < 2s com 200 tarefas e 4G simulado (throttling do Playwright)
+Specs em `e2e/`; cada teste cria a própria conta (nunca usa dados de produção):
+
+- [x] Fluxo "Hoje" completo: atrasadas primeiro → WhatsApp → concluir → resultado →
+      próxima ação → próxima tarefa — `e2e/today.spec.ts` (WhatsApp é link externo; o fluxo
+      interno de conclusão é o que o teste percorre).
+- [x] Cadastro de lead em < 20s, incluindo aviso de duplicado (US-03) —
+      `e2e/today.spec.ts` + timer real medido pelo app.
+- [x] Kanban: arrastar entre etapas persiste após recarregar — `e2e/kanban.spec.ts`
+      (viewport desktop; no celular o funil abre em lista).
+- [x] Fechar como perdido sem motivo é bloqueado; com motivo funciona — `e2e/kanban.spec.ts`.
+- [x] Importação CSV com fixture de 5.000 linhas e relatório conferido — `e2e/import.spec.ts`
+      (gerada no próprio teste; roda só no projeto desktop por tempo).
+- [x] Formulário público cria lead e ele aparece em "Hoje" do responsável —
+      `e2e/public-form.spec.ts`.
+- [x] Convite → cadastro → login com papel correto (vendedor não acessa painel admin) —
+      `e2e/auth.spec.ts`.
+- [x] **Performance:** "Hoje" < 2s com 200 tarefas e 4G simulado — `e2e/performance.spec.ts`;
+      as tarefas são criadas por `e2e/seed-perf.ts` no CI (conta demo do seed).
 
 ## Qualidade contínua
 
-- [ ] CI em todo PR: `lint` + `typecheck` + unit + e2e (smoke) — nada entra com vermelho
-- [ ] Seed/fixtures estáveis para os testes E2E (nunca depender de dados de produção)
-- [ ] E2E rodando em viewport de celular **e** desktop
-- [ ] Cobertura mínima combinada para `server/services/` (regras de negócio): ~80%
+- [x] CI em todo PR: `format`, `lint`, `audit`, `typecheck`, unit + integração e build no job
+      `checks`; E2E em job separado (`e2e`) com Postgres efêmero, seed e Chromium.
+- [x] Seed/fixtures estáveis para os testes E2E — cada spec cria a própria conta; a conta demo
+      só é usada no teste de performance, com dados determinísticos.
+- [x] E2E rodando em viewport de celular **e** desktop (projetos `mobile-chrome` e
+      `desktop-chrome`; specs pesados rodam só no desktop).
+- [ ] Cobertura mínima de ~80% em `server/services/`: metas ainda não medidas. O Vitest não
+      está configurado com `--coverage` (falta `@vitest/coverage-v8`); avaliar junto com a 016.
 
 ---
+
+## Como rodar
+
+```bash
+# com Postgres de teste e migrations aplicadas + seed
+npm run db:seed
+npx tsx e2e/seed-perf.ts
+npm run build && npm run e2e        # E2E usa o build de produção (webServer)
+npx playwright test --project=desktop-chrome   # um projeto só
+```
+
+Local sem `CI`, o Playwright sobe `npm run dev` automaticamente; com `CI`, sobe
+`npm run start` (por isso o job faz `npm run build` antes).
 
 **✅ Critério de aceite:** suíte verde no CI cobrindo cada critério de lançamento verificável da seção 19; nenhum bug de isolamento conhecido aberto.

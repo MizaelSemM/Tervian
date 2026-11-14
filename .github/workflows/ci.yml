@@ -80,3 +80,73 @@ jobs:
 
       - name: Build de produção
         run: npm run build
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: checks
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tervian_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d tervian_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tervian_test
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/tervian_test
+      BETTER_AUTH_SECRET: ci-only-secret-with-at-least-32-characters
+      BETTER_AUTH_URL: http://localhost:3000
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Gerar Prisma Client
+        run: npx prisma generate
+
+      - name: Aplicar migrations
+        run: npx prisma migrate deploy
+
+      - name: Seed da conta demo
+        run: npm run db:seed
+
+      - name: Preparar cenário de performance (200 tarefas)
+        run: npx tsx e2e/seed-perf.ts
+
+      - name: Build de produção
+        run: npm run build
+
+      - name: Instalar Chromium do Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Testes E2E (mobile + desktop)
+        run: npm run e2e
+
+      - name: Publicar relatório do Playwright
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
