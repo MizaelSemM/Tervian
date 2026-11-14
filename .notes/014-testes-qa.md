@@ -2,7 +2,7 @@
 
 **Requisitos:** seção 13 (Vitest + Playwright), seção 19 (critérios de lançamento)
 **Prioridade:** P0 · **Depende de:** 001 (setup) · cobre 003–011 · **Bloqueia:** `016`
-**Status:** suíte implementada e validada localmente em 14/11/2026 (18 testes: 14 passam, 4 são skip no celular).
+**Status:** suíte implementada, validada localmente e verde no CI em 14/11/2026 — 165 testes de unidade/integração e 18 E2E (14 passam, 4 são skip no celular).
 
 ---
 
@@ -87,5 +87,10 @@ npx playwright test --project=desktop-chrome   # um projeto só
 
 Local sem `CI`, o Playwright sobe `npm run dev` automaticamente; com `CI`, sobe
 `npm run start` (por isso o job faz `npm run build` antes).
+
+Os testes de integração locais rodam em série (`fileParallelism: !process.env.CI`)
+porque o pooler do Supabase em session mode limita 15 conexões. No CI o Postgres
+efêmero roda em paralelo. Para rodar localmente com o paralelismo padrão e um
+banco próprio: `CI=1 npm test`.
 
 **✅ Critério de aceite:** suíte verde no CI cobrindo cada critério de lançamento verificável da seção 19; nenhum bug de isolamento conhecido aberto.
