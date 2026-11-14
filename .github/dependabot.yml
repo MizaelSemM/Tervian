@@ -15,8 +15,15 @@ updates:
           - minor
           - patch
     # O template do Next 16 fixa ESLint 9; major só quando o Next migrar.
+    # TypeScript 7 e @types/node 26 ainda não são suportados pelo stack/runtime atuais.
     ignore:
       - dependency-name: eslint
+        update-types:
+          - version-update:semver-major
+      - dependency-name: typescript
+        update-types:
+          - version-update:semver-major
+      - dependency-name: "@types/node"
         update-types:
           - version-update:semver-major
 
