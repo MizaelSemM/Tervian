@@ -1,4 +1,9 @@
+import Link from "next/link";
+
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { env } from "@/lib/env";
+import { PRIVACY_PATH, TERMS_PATH } from "@/lib/lgpd";
 import { withAdmin } from "@/lib/session";
 import { getPublicFormSettings, listPublicFormOwners } from "@/server/services/public-form";
 
@@ -7,7 +12,7 @@ import { PublicFormSettingsForm } from "./public-form-settings";
 export const metadata = { title: "Configurações — Tervian" };
 
 /**
- * Configurações da conta (tarefa 010) — por enquanto, só o formulário público.
+ * Configurações da conta (010 + 013): formulário público e privacidade/LGPD.
  * Só ADMIN acessa; `withAdmin` abre o contexto de tenant usado pelos serviços.
  */
 export default async function SettingsPage() {
@@ -24,6 +29,38 @@ export default async function SettingsPage() {
         </div>
 
         <PublicFormSettingsForm settings={settings} owners={owners} baseUrl={env.BETTER_AUTH_URL} />
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Privacidade e dados (LGPD)</CardTitle>
+            <CardDescription>
+              Exporte todos os dados da conta para atender um pedido do titular ou levar embora o
+              que é seu. Contatos individuais têm a própria exportação/exclusão no detalhe.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap items-center gap-3">
+            <a
+              href="/api/lgpd/export"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              Baixar todos os dados (JSON)
+            </a>
+            <Link
+              href={PRIVACY_PATH}
+              target="_blank"
+              className={buttonVariants({ variant: "ghost", size: "sm" })}
+            >
+              Política de privacidade
+            </Link>
+            <Link
+              href={TERMS_PATH}
+              target="_blank"
+              className={buttonVariants({ variant: "ghost", size: "sm" })}
+            >
+              Termos de uso
+            </Link>
+          </CardContent>
+        </Card>
       </div>
     );
   });

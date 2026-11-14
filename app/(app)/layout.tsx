@@ -2,7 +2,9 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { MobileNav } from "@/components/mobile-nav";
+import { trackEvent } from "@/lib/analytics";
 import { requireAuth } from "@/lib/session";
+import { runWithTenant } from "@/lib/tenant-context";
 
 import { SignOutButton } from "./sign-out-button";
 import { GlobalSearch } from "./global-search";
@@ -19,8 +21,22 @@ export const instant = false;
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const session = await requireAuth();
+  const accountId = session.user.accountId;
   const roleLabel = session.user.role === "ADMIN" ? "Administrador(a)" : "Vendedor(a)";
   const firstName = session.user.name.trim().split(/\s+/)[0] || session.user.name;
+
+  if (accountId) {
+    // Evento de abertura do app (métrica de vendedores ativos). O contexto de
+    // tenant aqui é só para o analytics carregar account_id/role.
+    runWithTenant(
+      {
+        accountId,
+        userId: session.user.id,
+        role: session.user.role === "ADMIN" ? "ADMIN" : "SELLER",
+      },
+      () => trackEvent("user_opened_app"),
+    );
+  }
 
   return (
     <div className="flex flex-1 flex-col">

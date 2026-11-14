@@ -437,6 +437,9 @@ export async function importContactsCsv(input: {
         duplicates: merged.duplicates,
         ignored: merged.ignored,
         errors: merged.errors.length,
+        // LGPD (013): a declaração de base legal fica registrada com data no
+        // próprio evento, sem guardar os dados importados.
+        legalBasis: "declared",
       },
       actorId: input.actingUser.id,
     });
@@ -461,6 +464,7 @@ export async function logImportCompleted(input: {
       duplicates: input.result.duplicates,
       ignored: input.result.ignored,
       errors: input.result.errors.length,
+      legalBasis: "declared",
     },
     actorId: input.actingUser.id,
   });

@@ -271,10 +271,18 @@ export default async function PainelPage({
               Em 30 segundos: quanto há no funil, o que está parado e quem precisa de atenção.
             </p>
           </div>
-          <Link href="/painel/carteira" className={buttonVariants({ size: "lg" })}>
-            Gerenciar carteira
-            <ArrowRightIcon className="size-4" />
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/painel/metricas"
+              className={buttonVariants({ variant: "outline", size: "lg" })}
+            >
+              Métricas de produto
+            </Link>
+            <Link href="/painel/carteira" className={buttonVariants({ size: "lg" })}>
+              Gerenciar carteira
+              <ArrowRightIcon className="size-4" />
+            </Link>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">

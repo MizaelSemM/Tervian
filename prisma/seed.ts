@@ -329,6 +329,8 @@ async function main() {
       name: "Empresa Demo",
       plan: "trial",
       publicFormSlug: "empresa-demo",
+      termsAcceptedAt: new Date("2026-11-13T00:00:00Z"),
+      termsVersion: "2026-11-13",
     },
     update: { publicFormSlug: "empresa-demo" },
   });

@@ -72,6 +72,15 @@ export default async function PublicLeadPage({
           Tervian
         </a>
       </p>
+      <p className="text-center text-[11px] text-muted-foreground">
+        <a href="/privacidade" className="underline-offset-2 hover:underline">
+          Privacidade
+        </a>{" "}
+        ·{" "}
+        <a href="/termos" className="underline-offset-2 hover:underline">
+          Termos
+        </a>
+      </p>
     </main>
   );
 }

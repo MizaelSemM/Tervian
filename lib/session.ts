@@ -53,7 +53,14 @@ export async function withSession<T>(fn: (session: AuthedSession) => Promise<T>)
   const session = await requireAuth();
   const accountId = session.user.accountId;
   if (!accountId) redirect("/login"); // narrow do TS — requireAuth já barra isto
-  return runWithTenant({ accountId, userId: session.user.id }, () => fn(session));
+  return runWithTenant(
+    {
+      accountId,
+      userId: session.user.id,
+      role: session.user.role === "ADMIN" ? "ADMIN" : "SELLER",
+    },
+    () => fn(session),
+  );
 }
 
 /** Igual a `withSession`, mas só para ADMIN. */
@@ -61,5 +68,12 @@ export async function withAdmin<T>(fn: (session: AuthedSession) => Promise<T>): 
   const session = await requireRole("ADMIN");
   const accountId = session.user.accountId;
   if (!accountId) redirect("/login"); // narrow do TS — requireAuth já barra isto
-  return runWithTenant({ accountId, userId: session.user.id }, () => fn(session));
+  return runWithTenant(
+    {
+      accountId,
+      userId: session.user.id,
+      role: session.user.role === "ADMIN" ? "ADMIN" : "SELLER",
+    },
+    () => fn(session),
+  );
 }

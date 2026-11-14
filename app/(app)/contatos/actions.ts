@@ -8,9 +8,10 @@ import {
   firstContactIssueMessage,
   updateContactSchema,
 } from "@/lib/schemas/contact";
-import { withSession, type AuthedSession } from "@/lib/session";
+import { withSession, withAdmin, type AuthedSession } from "@/lib/session";
 import { AppError } from "@/server/errors";
 import { softDeleteContact, updateContact } from "@/server/services/contacts";
+import { purgeContact } from "@/server/services/lgpd";
 import { createNote, deleteNote, updateNote } from "@/server/services/notes";
 import { createLead, type DuplicateContact } from "@/server/services/leads";
 import type { ActingUser } from "@/server/services/owners";
@@ -123,6 +124,36 @@ export async function deleteContactAction(
 
     revalidatePath("/contatos");
     redirect("/contatos?excluido=1");
+  });
+}
+
+/**
+ * Exclusão definitiva (LGPD): apaga contato + negócios + tarefas + notas +
+ * timeline. Diferente de `deleteContactAction`, que só marca `deletedAt`.
+ * Exige confirmação digitada e papel ADMIN, revalidado no servidor.
+ */
+export async function purgeContactAction(
+  contactId: string,
+  confirmation: string,
+): Promise<ContactActionState> {
+  return withAdmin(async (session) => {
+    if (!contactId) return { error: "Contato inválido." };
+    if (confirmation.trim().toUpperCase() !== "EXCLUIR") {
+      return { error: "Digite EXCLUIR para confirmar a remoção definitiva." };
+    }
+
+    try {
+      await purgeContact({ contactId, actingUser: actingUserFrom(session) });
+    } catch (error) {
+      if (error instanceof AppError) return { error: error.message };
+      console.error("[contatos] Erro ao excluir contato definitivamente:", error);
+      return { error: GENERIC_ERROR };
+    }
+
+    revalidatePath("/contatos");
+    revalidatePath("/hoje");
+    revalidatePath("/negocios");
+    return null;
   });
 }
 
