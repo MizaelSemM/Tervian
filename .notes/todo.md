@@ -21,7 +21,7 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
 ## ⏳ Em Progresso
 
 - [ ] **013 · Segurança, LGPD e observabilidade** → [013-seguranca-lgpd-observabilidade.md](013-seguranca-lgpd-observabilidade.md) — código implementado; faltam migrations, credenciais de Sentry/PostHog, restore de backup e monitor de uptime (dependem do painel do dono)
-- [ ] **014 · Testes e QA** → [014-testes-qa.md](014-testes-qa.md) — suíte E2E e job do CI implementados; falta a primeira execução verde no CI
+- [ ] **014 · Testes e QA** → [014-testes-qa.md](014-testes-qa.md) — suíte E2E e job do CI implementados; 18 testes validados localmente, aguardando execução verde no CI
 - [ ] **012 · PWA, mobile-first e UX de um clique** → [012-pwa-ux-mobile.md](012-pwa-ux-mobile.md) — base implementada; faltam medições (4G/Lighthouse) e teste em aparelho real
 
 > ⚠️ **Revisão de 13/11/2026:** o quadro marcava 008–011 como concluídas, mas 009 e 010 ainda tinham critérios de aceite abertos. 009 e 010 foram fechadas; 008 e 011 já estavam implementadas.
@@ -73,7 +73,7 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
 
 - [ ] **012 · PWA, mobile-first e UX de um clique** → [012-pwa-ux-mobile.md](012-pwa-ux-mobile.md) — base implementada; faltam medições e teste em aparelho real
 - [ ] **013 · Segurança, LGPD e observabilidade** → [013-seguranca-lgpd-observabilidade.md](013-seguranca-lgpd-observabilidade.md) — implementada; pendências externas no arquivo da tarefa
-- [ ] **014 · Testes e QA** (Vitest + Playwright, isolamento, "Hoje" < 2s) → [014-testes-qa.md](014-testes-qa.md) — specs e CI implementados; aguardando primeira execução
+- [ ] **014 · Testes e QA** (Vitest + Playwright, isolamento, "Hoje" < 2s) → [014-testes-qa.md](014-testes-qa.md) — specs e CI implementados; 14 E2E verdes (4 skip mobile) na validação local
 
 ### Bloco 8 — Lançamento *(semana 7–8)*
 

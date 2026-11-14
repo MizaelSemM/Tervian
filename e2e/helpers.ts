@@ -44,9 +44,9 @@ export async function signUp(
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Criar conta" }).click();
 
-  // O cadastro cria a sessão e redireciona para a tela "Hoje".
+  // O cadastro cria a sessão; a raiz redireciona para a tela "Hoje".
   await expect(page.getByRole("heading", { name: /^Olá,/ })).toBeVisible({ timeout: 30_000 });
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/hoje$/);
 
   return { email, name, companyName };
 }

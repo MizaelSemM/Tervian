@@ -34,7 +34,10 @@ test("lead duplicado avisa e não cria outro negócio", async ({ page }) => {
   await page.getByLabel("Telefone", { exact: true }).fill(phone);
   await page.getByRole("button", { name: "Salvar lead" }).click();
 
-  await expect(page.getByRole("alert")).toContainText("Este telefone já está cadastrado.");
-  await expect(page.getByRole("alert")).toContainText(leadName);
+  const duplicateAlert = page
+    .getByRole("alert")
+    .filter({ hasText: "Este telefone já está cadastrado." });
+  await expect(duplicateAlert).toContainText("Este telefone já está cadastrado.");
+  await expect(duplicateAlert).toContainText(leadName);
   await expect(page.getByRole("link", { name: "Abrir contato existente" })).toBeVisible();
 });

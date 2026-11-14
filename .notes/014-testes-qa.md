@@ -2,7 +2,7 @@
 
 **Requisitos:** seção 13 (Vitest + Playwright), seção 19 (critérios de lançamento)
 **Prioridade:** P0 · **Depende de:** 001 (setup) · cobre 003–011 · **Bloqueia:** `016`
-**Status:** suíte implementada em 14/11/2026; E2E será validado no CI (o ambiente local não tem Postgres).
+**Status:** suíte implementada e validada localmente em 14/11/2026 (18 testes: 14 passam, 4 são skip no celular).
 
 ---
 
@@ -45,6 +45,22 @@ Specs em `e2e/`; cada teste cria a própria conta (nunca usa dados de produção
       `e2e/auth.spec.ts`.
 - [x] **Performance:** "Hoje" < 2s com 200 tarefas e 4G simulado — `e2e/performance.spec.ts`;
       as tarefas são criadas por `e2e/seed-perf.ts` no CI (conta demo do seed).
+
+## Correções encontradas rodando o E2E
+
+- **Cadastro não perde mais os campos digitados após um erro de validação.** O React 19
+  reseta inputs não controlados depois de uma Server Action; a action agora devolve
+  `companyName`, `name` e `email` no estado e o formulário usa `defaultValue`. A senha
+  continua sendo pedida de novo (não volta para o cliente).
+- **Relatório da importação conta os negócios criados.** Cada lead novo cria um negócio na
+  etapa "Novo", mas `dealsCreated` só era incrementado no modo "criar novo" de duplicados;
+  o relatório mostrava "0 novos negócios". Corrigido em `importRowsChunk()` e coberto por
+  teste de integração em `tests/integration/leads.test.ts`.
+- **Seletores do Playwright menos frágeis.** `role=alert` também casa com o announcer de
+  rotas do Next; os testes filtram pelo texto. O destino pós-cadastro/redirecionamento é
+  `/hoje` (a raiz redireciona), não `/`.
+
+---
 
 ## Qualidade contínua
 

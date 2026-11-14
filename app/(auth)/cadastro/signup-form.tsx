@@ -43,6 +43,7 @@ export function SignUpForm() {
               name="companyName"
               autoComplete="organization"
               placeholder="Ex.: Loja do Bairro"
+              defaultValue={state?.values?.companyName}
               required
             />
           </div>
@@ -53,6 +54,7 @@ export function SignUpForm() {
               name="name"
               autoComplete="name"
               placeholder="Nome e sobrenome"
+              defaultValue={state?.values?.name}
               required
             />
           </div>
@@ -64,6 +66,7 @@ export function SignUpForm() {
               type="email"
               autoComplete="email"
               placeholder="voce@empresa.com"
+              defaultValue={state?.values?.email}
               required
             />
           </div>

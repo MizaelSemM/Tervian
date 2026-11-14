@@ -8,6 +8,7 @@ import { afterAll, describe, expect, it } from "vitest";
 
 import { prismaBase } from "@/lib/prisma";
 import { runWithTenant } from "@/lib/tenant-context";
+import { importRowsChunk } from "@/server/services/import";
 import { createLead } from "@/server/services/leads";
 import { ensureDefaultPipeline } from "@/server/services/pipeline";
 
@@ -225,6 +226,32 @@ describe("createLead (integração)", () => {
     expect(contact.ownerId).toBe(seeded.seller.id);
     expect(deal.ownerId).toBe(seeded.seller.id);
     expect(task.ownerId).toBe(seeded.seller.id);
+  });
+
+  it("relatório da importação conta os negócios criados com os leads novos", async () => {
+    const seeded = await makeAccount("import");
+
+    const result = await asUser(seeded, "admin", () =>
+      importRowsChunk({
+        actingUser: { id: seeded.admin.id, role: "ADMIN" },
+        baseLegal: true,
+        rows: [
+          { rowNumber: 2, name: "Carla Import", phone: "11987654321" },
+          { rowNumber: 3, name: "Bruno Import", phone: "11987654322" },
+        ],
+      }),
+    );
+
+    expect(result).toMatchObject({
+      total: 2,
+      imported: 2,
+      dealsCreated: 2,
+      duplicates: 0,
+      ignored: 0,
+    });
+    expect(result.errors).toHaveLength(0);
+    expect(await prismaBase.deal.count({ where: { accountId: seeded.account.id } })).toBe(2);
+    expect(await prismaBase.task.count({ where: { accountId: seeded.account.id } })).toBe(2);
   });
 
   it("ensureDefaultPipeline é idempotente e reaproveita o funil existente", async () => {

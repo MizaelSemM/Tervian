@@ -18,12 +18,15 @@ test("cadastro exige aceite dos termos e entra direto na tela Hoje", async ({ pa
   await page.getByRole("button", { name: "Criar conta" }).click();
 
   // Sem marcar o checkbox, o servidor recusa e não cria a conta.
-  await expect(page.getByRole("alert")).toContainText(/termos/i);
+  await expect(page.getByRole("alert").filter({ hasText: /termos/i })).toBeVisible();
   await expect(page).toHaveURL(/\/cadastro/);
 
+  // Os demais campos são preservados; a senha nunca volta para o formulário.
+  await page.getByLabel("Senha", { exact: true }).fill(TEST_PASSWORD);
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Criar conta" }).click();
   await expect(page.getByRole("heading", { name: /^Olá,/ })).toBeVisible({ timeout: 30_000 });
+  await expect(page).toHaveURL(/\/hoje$/);
 });
 
 test("convite cria vendedor, login funciona e vendedor não acessa o painel", async ({
@@ -60,7 +63,7 @@ test("convite cria vendedor, login funciona e vendedor não acessa o painel", as
 
   // Vendedor não pode abrir o painel do gestor (requireRole redireciona).
   await sellerPage.goto("/painel");
-  await expect(sellerPage).toHaveURL(/\/$/);
+  await expect(sellerPage).toHaveURL(/\/hoje$/);
   await expect(sellerPage.getByRole("heading", { name: /^Olá,/ })).toBeVisible();
 
   await sellerContext.close();
