@@ -59,7 +59,7 @@ export type ImportResult = {
   imported: number;
   /** Duplicados que tiveram os dados do contato atualizados. */
   updated: number;
-  /** Duplicados que ganharam um novo negócio (modo "criar novo"). */
+  /** Negócios criados: um por lead novo e um para cada duplicado no modo "criar novo". */
   dealsCreated: number;
   duplicates: number;
   ignored: number;
