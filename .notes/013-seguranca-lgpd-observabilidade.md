@@ -73,11 +73,16 @@
 
 ## Pendências externas (bloqueiam o lançamento, não o código)
 
-1. Aplicar as migrations no Supabase: `20261113120000_add_public_form_settings` (010) e
-   `20261113160000_add_account_terms` (013) com `npm run db:migrate`.
-2. Configurar `SENTRY_DSN`, `NEXT_PUBLIC_POSTHOG_KEY` e `NEXT_PUBLIC_POSTHOG_HOST` na Vercel.
-3. Executar e documentar o teste de restore do backup diário do Postgres.
-4. Ativar o monitor de uptime (99,5%) com alerta por e-mail/WhatsApp.
-5. Criar o alerta de erros novos no Sentry e o projeto do PostHog com os eventos acima.
+1. [x] Aplicar as migrations no Supabase: `20261113120000_add_public_form_settings` (010) e
+       `20261113160000_add_account_terms` (013) com `npm run db:migrate` — aplicadas em
+       14/11/2026 e verificadas em `_prisma_migrations`.
+2. [ ] Configurar `SENTRY_DSN`, `NEXT_PUBLIC_POSTHOG_KEY` e `NEXT_PUBLIC_POSTHOG_HOST` na Vercel.
+3. [ ] Corrigir `DATABASE_URL` e `DIRECT_URL` na Vercel (Production e Preview) e fazer
+       **Redeploy**: o cadastro em produção ainda falha com `P1000` porque a env aponta para
+       credenciais antigas do Supabase. O `.env` local conecta normalmente no pooler
+       `aws-1-sa-east-1.pooler.supabase.com:5432` com o usuário `postgres.<ref>`.
+4. [ ] Executar e documentar o teste de restore do backup diário do Postgres.
+5. [ ] Ativar o monitor de uptime (99,5%) com alerta por e-mail/WhatsApp.
+6. [ ] Criar o alerta de erros novos no Sentry e o projeto do PostHog com os eventos acima.
 
 **✅ Critério de aceite:** termos publicados; testes de isolamento no CI; métricas de adoção disponíveis sem trabalho manual no dia 1 do piloto; restauramos um backup de teste com sucesso.
