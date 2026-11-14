@@ -78,6 +78,10 @@ model Account {
   publicFormWhatsapp String?  @map("public_form_whatsapp")
   publicFormOwnerId  String?  @unique @map("public_form_owner_id")
 
+  // LGPD (tarefa 013): aceite dos termos no cadastro, com data e versão.
+  termsAcceptedAt DateTime? @map("terms_accepted_at")
+  termsVersion    String?   @map("terms_version")
+
   publicFormOwner User? @relation("AccountPublicFormOwner", fields: [publicFormOwnerId], references: [id], onDelete: SetNull)
 
   users            User[]

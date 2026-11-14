@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { runWithSignupContext } from "@/lib/auth-signup-context";
 import { prismaBase } from "@/lib/prisma";
 import { generatePublicFormSlug } from "@/lib/public-form";
+import { TERMS_VERSION } from "@/lib/lgpd";
 import type { SignUpCompanyInput } from "@/lib/schemas/auth";
 import { isAlreadyExistsError } from "@/server/auth-errors";
 import { AppError } from "@/server/errors";
@@ -75,6 +76,8 @@ async function createAccount(companyName: string) {
         data: {
           name: companyName,
           publicFormSlug: generatePublicFormSlug(companyName),
+          termsAcceptedAt: new Date(),
+          termsVersion: TERMS_VERSION,
         },
       });
     } catch (error) {

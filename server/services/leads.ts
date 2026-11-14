@@ -168,7 +168,13 @@ export async function createLead(input: CreateLeadInput): Promise<CreateLeadResu
 
       await logEvent({
         type: "deal.created",
-        payload: { title: name, stage: newStage.name, source },
+        payload: {
+          title: name,
+          stage: newStage.name,
+          source,
+          // Número puro (sem PII) usado nas métricas de produto (013).
+          seconds: input.captureSeconds ?? null,
+        },
         dealId: deal.id,
         contactId: contact.id,
         actorId: input.actingUser.id,
@@ -192,6 +198,7 @@ export async function createLead(input: CreateLeadInput): Promise<CreateLeadResu
       source,
       origin,
       seconds: input.captureSeconds,
+      created_in_seconds: input.captureSeconds,
       has_email: Boolean(input.email),
       has_company: Boolean(input.companyText),
     });

@@ -40,6 +40,7 @@ describe("auth: cadastro, convites e equipe (integração)", () => {
       name: "Administrador Teste",
       email: email("admin"),
       password: TEST_PASSWORD,
+      acceptTerms: true,
     });
     accountIds.push(admin.accountId);
   }, 30_000);
@@ -102,6 +103,7 @@ describe("auth: cadastro, convites e equipe (integração)", () => {
           name: "Outro Usuário",
           email: email("admin"),
           password: TEST_PASSWORD,
+          acceptTerms: true,
         }),
       ).rejects.toThrow(/já está cadastrado/);
 

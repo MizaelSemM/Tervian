@@ -18,6 +18,7 @@ export async function signUpCompanyAction(
     name: formData.get("name"),
     email: formData.get("email"),
     password: formData.get("password"),
+    acceptTerms: formData.get("acceptTerms") === "on",
   });
   if (!parsed.success) return { error: firstIssueMessage(parsed.error) };
 

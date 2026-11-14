@@ -683,6 +683,8 @@ export async function moveDeal(
     });
   });
 
+  trackEvent("deal_moved", { from_stage: deal.stageId, to_stage: target.id });
+
   return { contactId: deal.contactId, stageId: target.id, changed: true };
 }
 
@@ -828,9 +830,9 @@ export async function closeDeal(input: CloseDealInput): Promise<{ contactId: str
   );
 
   if (input.status === "WON") {
-    trackEvent("deal_closed", { status: "WON", value: result.finalValue });
+    trackEvent("deal_won", { value: result.finalValue });
   } else {
-    trackEvent("deal_closed", { status: "LOST", has_note: Boolean(input.lostNote?.trim()) });
+    trackEvent("deal_lost", { has_note: Boolean(input.lostNote?.trim()) });
   }
 
   return { contactId: result.contactId };

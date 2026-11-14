@@ -407,7 +407,9 @@ export async function completeTask(input: CompleteTaskInput): Promise<{
     has_note: resultNote !== null,
   });
   if (closeStatus) {
-    trackEvent("deal_closed", { status: closeStatus });
+    trackEvent(closeStatus === "WON" ? "deal_won" : "deal_lost", { source: "task_completion" });
+  } else {
+    trackEvent("next_action_set", { source: "task_completion" });
   }
 
   return {
@@ -620,6 +622,8 @@ export async function scheduleNextAction(
     await recomputeDealActivityInTransaction(tx, accountId, deal.id, now);
     return id;
   });
+
+  trackEvent("next_action_set", { source: "deal_detail" });
 
   return { taskId, contactId: deal.contactId };
 }

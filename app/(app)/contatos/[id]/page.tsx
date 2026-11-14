@@ -13,6 +13,7 @@ import { getAccountTimeZone } from "@/server/services/followup";
 import { listOwnerOptions, type ActingUser } from "@/server/services/owners";
 
 import { ContactPanel } from "./contact-panel";
+import { ContactLgpdCard } from "./contact-lgpd";
 import { ContactNotesCard } from "./contact-notes";
 import { DealTimelineCard } from "@/app/(app)/negocios/[id]/deal-sections";
 import type { DealTimelineEvent } from "@/server/services/deals";
@@ -195,6 +196,12 @@ export default async function ContactDetailPage({
             timeZone={timeZone}
           />
         </div>
+
+        <ContactLgpdCard
+          contactId={contact.id}
+          contactName={contact.name}
+          isAdmin={session.user.role === "ADMIN"}
+        />
       </div>
     );
   });

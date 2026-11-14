@@ -74,11 +74,11 @@ export async function loadPublicFormAccount(slugOrId: string): Promise<PublicFor
 export async function resolvePublicFormOwner(
   accountId: string,
   preferredOwnerId: string | null,
-): Promise<{ id: string } | null> {
+): Promise<{ id: string; role: "ADMIN" | "SELLER" } | null> {
   if (preferredOwnerId) {
     const preferred = await prismaBase.user.findFirst({
       where: { id: preferredOwnerId, accountId, active: true },
-      select: { id: true },
+      select: { id: true, role: true },
     });
     if (preferred) return preferred;
   }
@@ -86,7 +86,7 @@ export async function resolvePublicFormOwner(
   return prismaBase.user.findFirst({
     where: { accountId, active: true },
     orderBy: [{ role: "asc" }, { createdAt: "asc" }],
-    select: { id: true },
+    select: { id: true, role: true },
   });
 }
 

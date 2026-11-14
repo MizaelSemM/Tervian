@@ -1,0 +1,27 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Sao_Paulo
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    # O template do Next 16 fixa ESLint 9; major só quando o Next migrar.
+    ignore:
+      - dependency-name: eslint
+        update-types:
+          - version-update:semver-major
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3

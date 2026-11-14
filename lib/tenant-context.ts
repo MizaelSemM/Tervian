@@ -14,6 +14,8 @@ import { AsyncLocalStorage } from "node:async_hooks";
 export type TenantContext = {
   accountId: string;
   userId?: string;
+  /** Papel do usuário na conta — usado apenas em analytics (nunca em autorização). */
+  role?: "ADMIN" | "SELLER";
 };
 
 const storage = new AsyncLocalStorage<TenantContext>();

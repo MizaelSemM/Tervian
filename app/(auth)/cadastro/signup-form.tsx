@@ -78,6 +78,30 @@ export function SignUpForm() {
               required
             />
           </div>
+          <label className="flex items-start gap-2 text-sm text-muted-foreground">
+            <input type="checkbox" name="acceptTerms" className="mt-0.5" required />
+            <span>
+              Li e aceito os{" "}
+              <Link
+                href="/termos"
+                target="_blank"
+                className="underline underline-offset-4"
+                rel="noopener noreferrer"
+              >
+                termos de uso
+              </Link>{" "}
+              e a{" "}
+              <Link
+                href="/privacidade"
+                target="_blank"
+                className="underline underline-offset-4"
+                rel="noopener noreferrer"
+              >
+                política de privacidade
+              </Link>
+              .
+            </span>
+          </label>
           {state?.error && (
             <p role="alert" className="text-sm text-destructive">
               {state.error}

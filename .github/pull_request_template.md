@@ -19,6 +19,8 @@
 - [ ] `npm run build`
 - [ ] Migration incluída e aplicada (se mudou o schema)
 - [ ] Isolamento por conta/responsável coberto por teste (quando aplicável)
+- [ ] Segurança: Server Action/Route Handler novo exige sessão + `account_id` e valida entrada no servidor
+- [ ] LGPD: nenhum dado pessoal novo em log/analytics; exportação/exclusão consideradas quando aplicável
 - [ ] `.notes/` da tarefa e `.notes/todo.md` atualizados
 - [ ] Critérios de aceite do arquivo `.notes/NNN` conferidos (checkboxes marcados ou pendências explícitas)
 - [ ] Testado no mobile (quando houver UI)

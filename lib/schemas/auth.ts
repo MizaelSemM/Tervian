@@ -37,6 +37,10 @@ export const signUpCompanySchema = z.object({
   name: nameField,
   email: emailField,
   password: passwordField,
+  // LGPD: o aceite é obrigatório e fica registrado na conta (data + versão).
+  acceptTerms: z.literal(true, {
+    message: "Para criar a conta, aceite os termos de uso e a política de privacidade.",
+  }),
 });
 
 /** Login — usado apenas no client (o Better Auth valida de novo no servidor). */

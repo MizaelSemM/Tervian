@@ -82,9 +82,9 @@ export async function submitPublicLeadAction(
   const captureSeconds = elapsedMs !== null ? Math.round(elapsedMs / 1000) : undefined;
 
   try {
-    await runWithTenant({ accountId: account.id, userId: owner.id }, async () => {
+    await runWithTenant({ accountId: account.id, userId: owner.id, role: owner.role }, async () => {
       const result = await createLead({
-        actingUser: { id: owner.id, role: "ADMIN" },
+        actingUser: { id: owner.id, role: owner.role },
         name,
         phone,
         email,
