@@ -7,16 +7,16 @@ import { AppError } from "@/server/errors";
 import { reassignDeals } from "@/server/services/dashboard";
 
 /**
- * A����es do painel do gestor (tarefa 011).
+ * Ações do painel do gestor (tarefa 011).
  *
- * A p��gina j�� exige ADMIN; a action repete a checagem via `withAdmin` porque
- * Server Actions s��o um endpoint p��blico e n��o podem confiar no render.
+ * A página já exige ADMIN; a action repete a checagem via `withAdmin` porque
+ * Server Actions são um endpoint público e não podem confiar no render.
  */
 
 export type ReassignState =
   { ok: true; updated: number; message: string } | { ok: false; error: string } | null;
 
-const GENERIC_ERROR = "N��o foi poss��vel reatribuir agora. Tente novamente em instantes.";
+const GENERIC_ERROR = "Não foi possível reatribuir agora. Tente novamente em instantes.";
 
 export async function reassignDealsAction(
   _previous: ReassignState,
@@ -30,10 +30,10 @@ export async function reassignDealsAction(
     const ownerId = String(formData.get("ownerId") ?? "").trim();
 
     if (dealIds.length === 0) {
-      return { ok: false, error: "Selecione ao menos um neg��cio." };
+      return { ok: false, error: "Selecione ao menos um negócio." };
     }
     if (!ownerId) {
-      return { ok: false, error: "Escolha o novo respons��vel." };
+      return { ok: false, error: "Escolha o novo responsável." };
     }
 
     try {
@@ -53,7 +53,7 @@ export async function reassignDealsAction(
         return {
           ok: true,
           updated: 0,
-          message: `Nenhum neg��cio precisou de troca: j�� estavam com ${result.ownerName}.`,
+          message: `Nenhum negócio precisou de troca: já estavam com ${result.ownerName}.`,
         };
       }
 
@@ -61,12 +61,12 @@ export async function reassignDealsAction(
         ok: true,
         updated: result.updated,
         message: `${result.updated} ${
-          result.updated === 1 ? "neg��cio reatribu��do" : "neg��cios reatribu��dos"
+          result.updated === 1 ? "negócio reatribuído" : "negócios reatribuídos"
         } para ${result.ownerName}.`,
       };
     } catch (error) {
       if (error instanceof AppError) return { ok: false, error: error.message };
-      console.error("[painel] Erro ao reatribuir neg��cios:", error);
+      console.error("[painel] Erro ao reatribuir negócios:", error);
       return { ok: false, error: GENERIC_ERROR };
     }
   });

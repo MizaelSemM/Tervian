@@ -16,6 +16,7 @@ import {
   listDealBoard,
   listDeals,
   moveDeal,
+  reopenDeal,
   updateDeal,
 } from "@/server/services/deals";
 import { deferDealNextAction, scheduleNextAction } from "@/server/services/followup";
@@ -831,5 +832,110 @@ describe("closeDeal (integração)", () => {
     expect(detail?.status).toBe("LOST");
     expect(detail?.lostReason?.name).toBe("Preço");
     expect(detail?.lostNote).toBe("Achou o preço alto");
+  });
+});
+
+describe("reopenDeal (integração)", () => {
+  it("reabre ganho com nova próxima ação, recria a tarefa e preserva o evento anterior", async () => {
+    const contact = await makeContact(crud, "Contato reaberto", crud.sellerA.id);
+    const dealId = await makeDeal(crud, contact.id, crud.sellerA.id, {
+      title: "Negócio reaberto",
+      value: 250,
+    });
+    const nextActionAt = inDays(3);
+
+    await as(crud, "sellerA", () =>
+      closeDeal({ id: dealId, actingUser: acting(crud, "sellerA"), status: "WON", value: 300 }),
+    );
+
+    await expect(
+      as(crud, "sellerA", () =>
+        reopenDeal({
+          id: dealId,
+          actingUser: acting(crud, "sellerA"),
+          nextActionAt,
+        }),
+      ),
+    ).resolves.toEqual({ contactId: contact.id });
+
+    const deal = await prismaBase.deal.findUniqueOrThrow({ where: { id: dealId } });
+    expect(deal.status).toBe("OPEN");
+    expect(deal.closedAt).toBeNull();
+    expect(deal.nextActionAt?.getTime()).toBe(nextActionAt.getTime());
+    expect(deal.lostReasonId).toBeNull();
+    expect(Number(deal.value)).toBe(300);
+
+    const tasks = await prismaBase.task.findMany({
+      where: { accountId: crud.accountId, dealId, completedAt: null },
+    });
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0].ownerId).toBe(crud.sellerA.id);
+    expect(tasks[0].dueAt.getTime()).toBe(nextActionAt.getTime());
+
+    const event = await prismaBase.timelineEvent.findFirstOrThrow({
+      where: { accountId: crud.accountId, dealId, type: "deal.reopened" },
+      orderBy: { createdAt: "desc" },
+    });
+    expect(event.payload).toMatchObject({
+      previousStatus: "WON",
+      nextActionAt: nextActionAt.toISOString(),
+    });
+
+    await expect(
+      as(crud, "sellerA", () =>
+        reopenDeal({ id: dealId, actingUser: acting(crud, "sellerA"), nextActionAt }),
+      ),
+    ).rejects.toMatchObject({ code: "DEAL_ALREADY_OPEN" });
+
+    await expect(
+      as(crud, "sellerB", () =>
+        reopenDeal({
+          id: dealId,
+          actingUser: acting(crud, "sellerB"),
+          nextActionAt,
+        }),
+      ),
+    ).rejects.toMatchObject({ code: "DEAL_NOT_FOUND" });
+  });
+
+  it("reabre perdido limpando motivo, mas guarda o motivo anterior na timeline", async () => {
+    const contact = await makeContact(crud, "Contato reaberto perdido", crud.sellerA.id);
+    const dealId = await makeDeal(crud, contact.id, crud.sellerA.id, {
+      title: "Negócio perdido reaberto",
+      value: 400,
+    });
+    const reasons = await as(crud, "sellerA", () => listLostReasons());
+    const reason = reasons.find((item) => item.name === "Preço");
+    if (!reason) throw new Error("Motivo padrão não encontrado");
+
+    await as(crud, "sellerA", () =>
+      closeDeal({
+        id: dealId,
+        actingUser: acting(crud, "sellerA"),
+        status: "LOST",
+        lostReasonId: reason.id,
+        lostNote: "Cliente achou caro",
+      }),
+    );
+
+    const nextActionAt = inDays(1);
+    await as(crud, "sellerA", () =>
+      reopenDeal({ id: dealId, actingUser: acting(crud, "sellerA"), nextActionAt }),
+    );
+
+    const deal = await prismaBase.deal.findUniqueOrThrow({ where: { id: dealId } });
+    expect(deal.status).toBe("OPEN");
+    expect(deal.lostReasonId).toBeNull();
+    expect(deal.lostNote).toBeNull();
+
+    const event = await prismaBase.timelineEvent.findFirstOrThrow({
+      where: { accountId: crud.accountId, dealId, type: "deal.reopened" },
+      orderBy: { createdAt: "desc" },
+    });
+    expect(event.payload).toMatchObject({
+      previousStatus: "LOST",
+      previousLostReason: "Preço",
+      previousLostNote: "Cliente achou caro",
+    });
   });
 });

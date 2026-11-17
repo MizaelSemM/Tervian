@@ -8,8 +8,8 @@ import {
 /**
  * Regras puras do painel do gestor (tarefa 011).
  *
- * Ficam fora do servi��o Prisma para serem testadas sem banco: filtro de
- * per��odo no fuso da conta, corte de "neg��cio parado", previs��o ponderada e
+ * Ficam fora do serviço Prisma para serem testadas sem banco: filtro de
+ * período no fuso da conta, corte de "negócio parado", previsão ponderada e
  * montagem do resumo por etapa.
  */
 
@@ -17,8 +17,8 @@ export const DASHBOARD_PERIODS = ["month", "30d"] as const;
 export type DashboardPeriod = (typeof DASHBOARD_PERIODS)[number];
 
 export const DASHBOARD_PERIOD_LABELS: Record<DashboardPeriod, string> = {
-  month: "M��s atual",
-  "30d": "��ltimos 30 dias",
+  month: "Mês atual",
+  "30d": "Últimos 30 dias",
 };
 
 export const STALLED_DAY_OPTIONS = [7, 14, 30] as const;
@@ -40,16 +40,16 @@ export type StageTotals = {
 
 export type StageSummary = StageLike &
   StageTotals & {
-    /** Valor ponderado pela probabilidade da etapa (previs��o). */
+    /** Valor ponderado pela probabilidade da etapa (previsão). */
     weightedValue: number;
   };
 
-/** Normaliza o par��metro `?periodo=`; desconhecido cai no m��s atual. */
+/** Normaliza o parâmetro `?periodo=`; desconhecido cai no mês atual. */
 export function parseDashboardPeriod(value: string | null | undefined): DashboardPeriod {
   return value === "30d" ? "30d" : "month";
 }
 
-/** Normaliza `?dias=`: aceita apenas 7, 14 ou 30 (padr��o 7). */
+/** Normaliza `?dias=`: aceita apenas 7, 14 ou 30 (padrão 7). */
 export function parseStalledDays(value: string | number | null | undefined): number {
   const parsed = typeof value === "number" ? value : Number(value);
   return (STALLED_DAY_OPTIONS as readonly number[]).includes(parsed)
@@ -58,8 +58,8 @@ export function parseStalledDays(value: string | number | null | undefined): num
 }
 
 /**
- * Intervalo de N dias de calend��rio no fuso da conta, incluindo hoje.
- * Ex.: 30 dias em 08/11 => in��cio em 10/10 ��s 00:00 locais.
+ * Intervalo de N dias de calendário no fuso da conta, incluindo hoje.
+ * Ex.: 30 dias em 08/11 => início em 10/10 às 00:00 locais.
  */
 export function calendarRangeInTimeZone(now: Date, timeZone: string, days: number): DateRange {
   const safeDays = Math.max(1, Math.floor(days));
@@ -73,7 +73,7 @@ export function calendarRangeInTimeZone(now: Date, timeZone: string, days: numbe
   };
 }
 
-/** Intervalo do filtro de per��odo do painel. */
+/** Intervalo do filtro de período do painel. */
 export function dashboardPeriodRange(
   period: DashboardPeriod,
   now: Date,
@@ -90,7 +90,7 @@ export function dashboardPeriodRange(
 }
 
 /**
- * Instante de corte de "neg��cio parado": in��cio do dia X dias atr��s.
+ * Instante de corte de "negócio parado": início do dia X dias atrás.
  * Atividade anterior a esse instante conta como X+ dias sem atividade.
  */
 export function stalledCutoff(now: Date, days: number, timeZone: string): Date {
@@ -102,7 +102,7 @@ export function stalledCutoff(now: Date, days: number, timeZone: string): Date {
   );
 }
 
-/** Um neg��cio est�� parado quando a ��ltima atividade (ou cria����o) passou do corte. */
+/** Um negócio está parado quando a última atividade (ou criação) passou do corte. */
 export function isDealStalled(
   deal: { lastActivityAt: Date | null; createdAt: Date },
   cutoff: Date,
@@ -114,7 +114,7 @@ function clampProbability(probability: number): number {
   return Math.min(100, Math.max(0, probability));
 }
 
-/** Previs��o = soma de valor �� probabilidade da etapa (RF-50). */
+/** Previsão = soma de valor × probabilidade da etapa (RF-50). */
 export function weightedForecast(
   stages: Array<{ totalValue: number; probability: number }>,
 ): number {
@@ -125,7 +125,17 @@ export function weightedForecast(
   return Math.round(total * 100) / 100;
 }
 
-/** Junta as etapas do funil com as somas agregadas de neg��cios abertos. */
+/**
+ * Taxa de ganho do período: ganhos ÷ (ganhos + perdidos), em %.
+ * Sem nenhum fechamento, não há taxa (não confundir com 0%).
+ */
+export function conversionRate(won: number, lost: number): number | null {
+  const decided = won + lost;
+  if (decided <= 0) return null;
+  return Math.round((won / decided) * 1000) / 10;
+}
+
+/** Junta as etapas do funil com as somas agregadas de negócios abertos. */
 export function buildStageSummaries(
   stages: StageLike[],
   totals: Record<string, StageTotals>,

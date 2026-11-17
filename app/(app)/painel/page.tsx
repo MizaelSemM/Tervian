@@ -36,6 +36,7 @@ import {
 import type { ActingUser } from "@/server/services/owners";
 
 import { DashboardCharts } from "./dashboard-charts";
+import { LostReasonsChart } from "./lost-reasons-chart";
 
 export const metadata = { title: "Painel — Tervian" };
 
@@ -483,6 +484,48 @@ export default async function PainelPage({
                   ))}
                 </tbody>
               </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Conversão e motivos de perda</CardTitle>
+            <CardDescription>
+              Fechamentos do período ({data.period.start} a {data.period.end}). A taxa considera
+              apenas negócios ganhos ou perdidos, não os que continuam abertos.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-6 lg:grid-cols-2">
+            <div className="flex flex-col justify-center gap-2 rounded-lg border border-border bg-muted/30 px-4 py-5">
+              <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                Taxa de ganho
+              </p>
+              <p className="text-3xl font-semibold tracking-tight">
+                {data.conversion.rate === null ? "—" : `${data.conversion.rate}%`}
+              </p>
+              {data.conversion.decided === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Nenhum negócio foi fechado neste período.
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  {data.conversion.won} {data.conversion.won === 1 ? "ganho" : "ganhos"} ·{" "}
+                  {data.conversion.lost} {data.conversion.lost === 1 ? "perdido" : "perdidos"} ·{" "}
+                  {formatCurrencyBR(data.period.wonValue)} em ganhos
+                </p>
+              )}
+            </div>
+
+            <div>
+              <p className="mb-3 text-sm font-medium">Principais motivos de perda</p>
+              {data.lostReasons.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-border px-3 py-8 text-center text-sm text-muted-foreground">
+                  Nenhuma perda registrada no período.
+                </p>
+              ) : (
+                <LostReasonsChart reasons={data.lostReasons} />
+              )}
             </div>
           </CardContent>
         </Card>

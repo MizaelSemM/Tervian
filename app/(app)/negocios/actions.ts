@@ -7,13 +7,14 @@ import {
   closeDealSchema,
   createDealSchema,
   firstDealIssueMessage,
+  reopenDealSchema,
   rescheduleDealSchema,
   updateDealSchema,
 } from "@/lib/schemas/deal";
 import { withSession, type AuthedSession } from "@/lib/session";
 import { parseDateKeyBR } from "@/lib/utils";
 import { AppError } from "@/server/errors";
-import { closeDeal, createDeal, moveDeal, updateDeal } from "@/server/services/deals";
+import { closeDeal, createDeal, moveDeal, reopenDeal, updateDeal } from "@/server/services/deals";
 import { deferDealNextAction, scheduleNextAction } from "@/server/services/followup";
 import { createNote, deleteNote, updateNote } from "@/server/services/notes";
 import type { ActingUser } from "@/server/services/owners";
@@ -221,6 +222,36 @@ export async function closeDealAction(
 
     revalidateDealPaths(parsed.data.id, result.contactId);
     redirect(`/negocios/${parsed.data.id}?fechado=${parsed.data.status.toLowerCase()}`);
+  });
+}
+
+/** Reabre um negócio fechado com uma nova próxima ação (RF-25). */
+export async function reopenDealAction(
+  _previous: DealFormState,
+  formData: FormData,
+): Promise<DealFormState> {
+  return withSession(async (session) => {
+    const parsed = reopenDealSchema.safeParse(Object.fromEntries(formData));
+    if (!parsed.success) return { error: firstDealIssueMessage(parsed.error) };
+
+    const nextActionAt = parseDateKeyBR(parsed.data.nextActionAt);
+    if (!nextActionAt) return { error: "Informe uma próxima ação válida." };
+
+    let result: Awaited<ReturnType<typeof reopenDeal>>;
+    try {
+      result = await reopenDeal({
+        id: parsed.data.id,
+        actingUser: actingUserFrom(session),
+        nextActionAt,
+      });
+    } catch (error) {
+      if (error instanceof AppError) return { error: error.message };
+      console.error("[negocios] Erro ao reabrir negócio:", error);
+      return { error: GENERIC_ERROR };
+    }
+
+    revalidateDealPaths(parsed.data.id, result.contactId);
+    redirect(`/negocios/${parsed.data.id}?reaberto=1`);
   });
 }
 

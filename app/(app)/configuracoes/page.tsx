@@ -32,6 +32,31 @@ export default async function SettingsPage() {
 
         <Card>
           <CardHeader>
+            <CardTitle>Exportar dados (CSV)</CardTitle>
+            <CardDescription>
+              Baixe contatos e negócios em planilha para analisar fora do Tervian ou levar para
+              outra ferramenta. A conta é sua: o arquivo inclui também registros excluídos
+              logicamente, com a data de exclusão.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap items-center gap-3">
+            <a
+              href="/api/export/csv?tipo=contatos"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              Exportar contatos
+            </a>
+            <a
+              href="/api/export/csv?tipo=negocios"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              Exportar negócios
+            </a>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Privacidade e dados (LGPD)</CardTitle>
             <CardDescription>
               Exporte todos os dados da conta para atender um pedido do titular ou levar embora o
