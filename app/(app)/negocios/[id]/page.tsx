@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatPhoneBR, whatsappLinkBR } from "@/lib/phone";
 import { DEAL_STATUS_LABELS } from "@/lib/schemas/deal";
 import { withSession } from "@/lib/session";
+import { addDaysToDateKey, todayKeyInTimeZone } from "@/lib/timezone";
 import { daysSinceBR, formatCurrencyBR, formatDateBR, nextActionLabelBR } from "@/lib/utils";
 import { getDeal } from "@/server/services/deals";
 import { getAccountTimeZone } from "@/server/services/followup";
@@ -17,6 +18,7 @@ import { getPipelineStages } from "@/server/services/pipeline";
 import { DealClose } from "./deal-close";
 import { DealEditForm } from "./deal-edit-form";
 import { DealNextAction } from "./deal-next-action";
+import { DealReopen } from "./deal-reopen";
 import {
   DealClosedSummary,
   DealContactCard,
@@ -51,7 +53,7 @@ export default async function DealDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ novo?: string; salvo?: string; fechado?: string }>;
+  searchParams: Promise<{ novo?: string; salvo?: string; fechado?: string; reaberto?: string }>;
 }) {
   const { id } = await params;
   const feedback = await searchParams;
@@ -72,6 +74,7 @@ export default async function DealDetailPage({
     const whatsapp = whatsappLinkBR(deal.contact.phone);
     const nextAction = nextActionLabelBR(deal.nextActionAt);
     const idleDays = daysSinceBR(deal.lastActivityAt ?? deal.createdAt);
+    const defaultReopenDate = addDaysToDateKey(todayKeyInTimeZone(timeZone), 1);
     const ownerOptions = owners.some((owner) => owner.id === deal.owner.id)
       ? owners
       : [{ id: deal.owner.id, name: deal.owner.name }, ...owners];
@@ -123,12 +126,13 @@ export default async function DealDetailPage({
           </div>
         </div>
 
-        {(feedback.novo || feedback.salvo || feedback.fechado) && (
+        {(feedback.novo || feedback.salvo || feedback.fechado || feedback.reaberto) && (
           <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
             {feedback.novo && "Negócio criado! A próxima ação já está agendada."}
             {feedback.salvo && "Negócio atualizado."}
             {feedback.fechado === "won" && "Negócio marcado como ganho. 🎉"}
             {feedback.fechado === "lost" && "Negócio marcado como perdido."}
+            {feedback.reaberto && "Negócio reaberto. A próxima ação já está agendada."}
           </p>
         )}
 
@@ -196,13 +200,16 @@ export default async function DealDetailPage({
                 <DealClose dealId={deal.id} currentValue={deal.value} lostReasons={lostReasons} />
               </>
             ) : (
-              <DealClosedSummary
-                status={deal.status}
-                value={deal.value}
-                closedAt={deal.closedAt}
-                lostReasonName={deal.lostReason?.name ?? null}
-                lostNote={deal.lostNote}
-              />
+              <>
+                <DealClosedSummary
+                  status={deal.status}
+                  value={deal.value}
+                  closedAt={deal.closedAt}
+                  lostReasonName={deal.lostReason?.name ?? null}
+                  lostNote={deal.lostNote}
+                />
+                <DealReopen dealId={deal.id} defaultNextActionDate={defaultReopenDate} />
+              </>
             )}
           </div>
 

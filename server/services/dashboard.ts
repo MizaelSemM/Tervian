@@ -2,6 +2,7 @@ import { Prisma } from "@/lib/generated/prisma/client";
 import {
   buildStageSummaries,
   calendarRangeInTimeZone,
+  conversionRate,
   dashboardPeriodRange,
   parseDashboardPeriod,
   parseStalledDays,
@@ -23,10 +24,10 @@ import { logEvent } from "@/server/services/timeline";
 /**
  * Painel do gestor (tarefa 011).
  *
- * Tudo �� agregado no servidor: as consultas pesadas usam `groupBy`/`count` e o
+ * Tudo é agregado no servidor: as consultas pesadas usam `groupBy`/`count` e o
  * client (Recharts) recebe apenas o resumo por etapa, nunca a lista crua de
- * neg��cios. As listas de apoio (parados, sem pr��xima a��o, atrasadas) s��o
- * curtas e j�� chegam prontas para leitura.
+ * negócios. As listas de apoio (parados, sem próxima ação, atrasadas) são
+ * curtas e já chegam prontas para leitura.
  */
 
 const STALLED_LIST_LIMIT = 10;
@@ -48,11 +49,11 @@ export type DashboardDealItem = {
 export type SellerActivity = {
   id: string;
   name: string;
-  /** Tarefas conclu��das nos ��ltimos 7 dias. */
+  /** Tarefas concluídas nos últimos 7 dias. */
   completedInWeek: number;
   /** Tarefas vencidas e ainda abertas agora. */
   overdue: number;
-  /** Tarefas abertas de neg��cios abertos (carga atual). */
+  /** Tarefas abertas de negócios abertos (carga atual). */
   openTasks: number;
 };
 
@@ -83,6 +84,21 @@ export type PeriodSummary = {
   completedTasks: number;
 };
 
+export type LostReasonSummary = {
+  id: string | null;
+  name: string;
+  count: number;
+  totalValue: number;
+};
+
+export type ConversionSummary = {
+  won: number;
+  lost: number;
+  decided: number;
+  /** Ganhos ÷ (ganhos + perdidos), em %. `null` quando não houve fechamento. */
+  rate: number | null;
+};
+
 export type DashboardData = {
   stalledDays: number;
   timeZone: string;
@@ -96,6 +112,8 @@ export type DashboardData = {
     overdueTasks: number;
   };
   period: PeriodSummary;
+  conversion: ConversionSummary;
+  lostReasons: LostReasonSummary[];
   stalledDeals: DashboardDealItem[];
   withoutNextActionDeals: DashboardDealItem[];
   sellers: SellerActivity[];
@@ -157,7 +175,7 @@ function countByOwner(
   return new Map(groups.map((group) => [group.ownerId, group._count._all]));
 }
 
-/** Dados completos da p��gina /painel. Exige ADMIN (defesa extra al��m da rota). */
+/** Dados completos da página /painel. Exige ADMIN (defesa extra além da rota). */
 export async function getDashboard(input: GetDashboardInput): Promise<DashboardData> {
   assertAdmin(input.actingUser);
 
@@ -200,6 +218,8 @@ export async function getDashboard(input: GetDashboardInput): Promise<DashboardD
     openTasksBySeller,
     newDeals,
     wonAggregate,
+    lostAggregate,
+    lostReasonGroups,
     completedTasks,
     selectedSellerOverdue,
   ] = await Promise.all([
@@ -257,6 +277,25 @@ export async function getDashboard(input: GetDashboardInput): Promise<DashboardD
     db.deal.aggregate({
       where: {
         status: "WON",
+        closedAt: { gte: periodRange.start, lte: periodRange.end },
+        deletedAt: null,
+      },
+      _count: { _all: true },
+      _sum: { value: true },
+    }),
+    db.deal.aggregate({
+      where: {
+        status: "LOST",
+        closedAt: { gte: periodRange.start, lte: periodRange.end },
+        deletedAt: null,
+      },
+      _count: { _all: true },
+      _sum: { value: true },
+    }),
+    db.deal.groupBy({
+      by: ["lostReasonId"],
+      where: {
+        status: "LOST",
         closedAt: { gte: periodRange.start, lte: periodRange.end },
         deletedAt: null,
       },
@@ -342,6 +381,30 @@ export async function getDashboard(input: GetDashboardInput): Promise<DashboardD
 
   const wonDeals = wonAggregate._count._all;
   const wonValue = Number(wonAggregate._sum.value ?? 0);
+  const lostDeals = lostAggregate._count._all;
+
+  const lostReasonIds = lostReasonGroups
+    .map((group) => group.lostReasonId)
+    .filter((id): id is string => Boolean(id));
+  const lostReasonNames =
+    lostReasonIds.length > 0
+      ? await db.lostReason.findMany({
+          where: { id: { in: lostReasonIds } },
+          select: { id: true, name: true },
+        })
+      : [];
+  const lostReasonNameById = new Map(lostReasonNames.map((reason) => [reason.id, reason.name]));
+
+  const lostReasons: LostReasonSummary[] = lostReasonGroups
+    .map((group) => ({
+      id: group.lostReasonId,
+      name: group.lostReasonId
+        ? (lostReasonNameById.get(group.lostReasonId) ?? "Motivo removido")
+        : "Sem motivo",
+      count: group._count._all,
+      totalValue: Number(group._sum.value ?? 0),
+    }))
+    .sort((a, b) => b.count - a.count || b.totalValue - a.totalValue);
 
   return {
     stalledDays,
@@ -365,6 +428,13 @@ export async function getDashboard(input: GetDashboardInput): Promise<DashboardD
       wonValue,
       completedTasks,
     },
+    conversion: {
+      won: wonDeals,
+      lost: lostDeals,
+      decided: wonDeals + lostDeals,
+      rate: conversionRate(wonDeals, lostDeals),
+    },
+    lostReasons,
     stalledDeals: stalledRows.map((row) => toDealItem(row, timeZone, todayKey)),
     withoutNextActionDeals: withoutNextActionRows.map((row) => toDealItem(row, timeZone, todayKey)),
     sellers: sellerActivity,
@@ -396,7 +466,7 @@ export type PortfolioData = {
 
 const PORTFOLIO_PAGE_SIZE = 25;
 
-/** Carteira para reatribui����o em lote (US-05). Exige ADMIN. */
+/** Carteira para reatribuição em lote (US-05). Exige ADMIN. */
 export async function listPortfolio(input: {
   actingUser: ActingUser;
   ownerId?: string | null;
@@ -470,25 +540,25 @@ export type ReassignDealsResult = {
 const MAX_BATCH_SIZE = 200;
 
 /**
- * Reatribui neg��cios abertos em lote.
+ * Reatribui negócios abertos em lote.
  *
- * Hist��rico preservado: a troca n��o apaga eventos antigos e gera um novo
- * `deal.owner_changed` em cada neg��cio. As tarefas abertas acompanham o novo
- * respons��vel para o follow-up n��o ficar com a pessoa antiga. A reatribui����o
- * N��O atualiza `last_activity_at` �� para o gestor, ela n��o esconder um neg��cio
- * que est�� parado na opera����o.
+ * Histórico preservado: a troca não apaga eventos antigos e gera um novo
+ * `deal.owner_changed` em cada negócio. As tarefas abertas acompanham o novo
+ * responsável para o follow-up não ficar com a pessoa antiga. A reatribuição
+ * NÃO atualiza `last_activity_at`, para o gestor não esconder um negócio
+ * que está parado na operação.
  */
 export async function reassignDeals(input: ReassignDealsInput): Promise<ReassignDealsResult> {
   assertAdmin(input.actingUser);
 
   const dealIds = [...new Set(input.dealIds.map((id) => id.trim()).filter(Boolean))];
   if (dealIds.length === 0) {
-    throw new AppError("DEALS_REQUIRED", "Selecione ao menos um neg��cio.");
+    throw new AppError("DEALS_REQUIRED", "Selecione ao menos um negócio.");
   }
   if (dealIds.length > MAX_BATCH_SIZE) {
     throw new AppError(
       "DEALS_BATCH_TOO_LARGE",
-      `Selecione no m��ximo ${MAX_BATCH_SIZE} neg��cios por vez.`,
+      `Selecione no máximo ${MAX_BATCH_SIZE} negócios por vez.`,
     );
   }
 
@@ -499,7 +569,7 @@ export async function reassignDeals(input: ReassignDealsInput): Promise<Reassign
     select: { id: true, name: true },
   });
   if (!owner) {
-    throw new AppError("OWNER_NOT_FOUND", "Respons��vel n��o encontrado ou inativo nesta equipe.");
+    throw new AppError("OWNER_NOT_FOUND", "Responsável não encontrado ou inativo nesta equipe.");
   }
 
   const deals = await db.deal.findMany({

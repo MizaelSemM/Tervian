@@ -16,10 +16,10 @@ const selectClassName =
   "h-8 min-w-52 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30";
 
 /**
- * Reatribui����o em lote da carteira (US-05).
+ * Reatribuição em lote da carteira (US-05).
  *
- * A sele����o �� s�� da p��gina atual; o servidor revalida os ids, o dono e a
- * conta antes de trocar. O hist��rico de cada neg��cio ganha um evento novo.
+ * A seleção é só da página atual; o servidor revalida os ids, o dono e a
+ * conta antes de trocar. O histórico de cada negócio ganha um evento novo.
  */
 export function PortfolioTable({
   items,
@@ -44,7 +44,7 @@ export function PortfolioTable({
     else toast.error(state.error);
   }, [state]);
 
-  // A revalida����o pode remover neg��cios do filtro; ids que sa��ram da p��gina
+  // A revalidação pode remover negócios do filtro; ids que saíram da página
   // deixam de contar sem precisar de setState em effect.
   const selectedIds = items.filter((deal) => selected.has(deal.id)).map((deal) => deal.id);
   const allSelected = items.length > 0 && selectedIds.length === items.length;
@@ -71,10 +71,10 @@ export function PortfolioTable({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Neg��cios abertos</CardTitle>
+        <CardTitle>Negócios abertos</CardTitle>
         <CardDescription>
-          Selecione um ou mais neg��cios e escolha o novo respons��vel. As tarefas abertas
-          acompanham a troca e o hist��rico �� preservado.
+          Selecione um ou mais negócios e escolha o novo responsável. As tarefas abertas acompanham
+          a troca e o histórico é preservado.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -96,7 +96,7 @@ export function PortfolioTable({
               disabled={pending}
             >
               <option value="" disabled>
-                Escolha o respons��vel
+                Escolha o responsável
               </option>
               {owners.map((owner) => (
                 <option key={owner.id} value={owner.id}>
@@ -115,14 +115,14 @@ export function PortfolioTable({
                 onClick={() => setSelected(new Set())}
                 disabled={pending}
               >
-                Limpar sele����o
+                Limpar seleção
               </Button>
             )}
           </div>
 
           {items.length === 0 ? (
             <p className="rounded-lg border border-dashed border-border px-3 py-8 text-center text-sm text-muted-foreground">
-              Nenhum neg��cio aberto neste filtro.
+              Nenhum negócio aberto neste filtro.
             </p>
           ) : (
             <div className="overflow-x-auto">
@@ -137,15 +137,15 @@ export function PortfolioTable({
                           if (input) input.indeterminate = someSelected && !allSelected;
                         }}
                         onChange={toggleAll}
-                        aria-label="Selecionar todos os neg��cios desta p��gina"
+                        aria-label="Selecionar todos os negócios desta página"
                         className="size-4 rounded border-border accent-foreground"
                       />
                     </th>
-                    <th className="pb-2 font-medium">Neg��cio</th>
+                    <th className="pb-2 font-medium">Negócio</th>
                     <th className="pb-2 font-medium">Etapa</th>
                     <th className="pb-2 text-right font-medium">Valor</th>
-                    <th className="pb-2 font-medium">Respons��vel</th>
-                    <th className="pb-2 text-right font-medium">��ltima atividade</th>
+                    <th className="pb-2 font-medium">Responsável</th>
+                    <th className="pb-2 text-right font-medium">Última atividade</th>
                   </tr>
                 </thead>
                 <tbody>

@@ -130,9 +130,16 @@ export const rescheduleDealSchema = z.object({
   date: dateKey("Informe a nova data."),
 });
 
+/** Reabertura exige uma nova próxima ação (negócio aberto nunca fica sem). */
+export const reopenDealSchema = z.object({
+  id: idField,
+  nextActionAt: dateKey("Informe a próxima ação para reabrir."),
+});
+
 export type CreateDealFormInput = z.infer<typeof createDealSchema>;
 export type UpdateDealFormInput = z.infer<typeof updateDealSchema>;
 export type CloseDealFormInput = z.infer<typeof closeDealSchema>;
+export type ReopenDealFormInput = z.infer<typeof reopenDealSchema>;
 
 /** Primeira mensagem de erro de um ZodError (mensagens já em pt-BR). */
 export function firstDealIssueMessage(error: z.ZodError): string {

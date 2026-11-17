@@ -1,7 +1,7 @@
 # ✅ TODO — CRM de Follow-up para Pequenas Equipes de Vendas (MVP)
 
 **Fonte:** [PRD – CRM de Follow-up para Pequenas Equipes de Vendas (MVP)](<../PRD – CRM de Follow-up para Pequenas Equipes de Vendas (MVP).md>)
-**Atualizado em:** 14/11/2026 · **Fase atual:** 3 — Qualidade e lançamento · **Prazo recalibrado: ~6–8 semanas** (ritmo ~20–25h/semana)
+**Atualizado em:** 17/11/2026 · **Fase atual:** 3 — Qualidade e lançamento · **Prazo recalibrado: ~6–8 semanas** (ritmo ~20–25h/semana)
 
 ---
 
@@ -80,7 +80,7 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
 
 ### Depois do MVP
 
-- [ ] **015 · Backlog MVP+ (P1) e Fase 2** — cadências, alertas de parados, templates, exportação, Google login → [015-mvp-plus-p1.md](015-mvp-plus-p1.md)
+- [ ] **015 · Backlog MVP+ (P1) e Fase 2** — cadências, alertas de parados, templates, exportação, Google login → [015-mvp-plus-p1.md](015-mvp-plus-p1.md) · 3 itens entregues na 017 (RF-25, RF-53, RF-54)
 
 ---
 
@@ -106,6 +106,7 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
 - [x] 14/11/2026 — **Dependabot em dia**: PRs #14–#17 mergeados (Actions e grupo minor/patch), majors de TypeScript e `@types/node` ignorados no `.github/dependabot.yml`; PRs #18, #19 e #7 fechados
 - [x] 14/11/2026 — **014 · Testes e QA concluída**: 165 testes de unidade/integração e 18 E2E (14 verdes, 4 skip mobile) verdes no CI; correções de preservação do formulário, seletor `role=alert`, destino `/hoje` e `dealsCreated` da importação — cobertura mínima de `server/services/` fica como melhoria da 016
 - [x] 14/11/2026 — **Cadastro em produção validado**: o `P1000` sumiu após o deploy do `master` com a env correta; um signup real criou a conta e caiu em `/hoje`, e a conta de teste foi removida em seguida
+- [x] 17/11/2026 — **017 · Quick wins do MVP+ concluída**: reabrir negócio fechado com nova próxima ação e evento `deal.reopened` (RF-25), exportação CSV de contatos/negócios com proteção contra injeção e download ADMIN (RF-54), taxa de ganho e ranking de motivos de perda no painel (RF-53) — sem migration; 172 testes verdes (unidade + integração), format/lint/typecheck/build ✓
 
 ---
 

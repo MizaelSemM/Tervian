@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildStageSummaries,
   calendarRangeInTimeZone,
+  conversionRate,
   dashboardPeriodRange,
   DEFAULT_STALLED_DAYS,
   isDealStalled,
@@ -17,7 +18,7 @@ const NEW_YORK = "America/New_York";
 const NOW = new Date("2026-11-08T15:00:00.000Z");
 
 describe("lib/dashboard (011)", () => {
-  it("normaliza os filtros de per��odo e de dias parados", () => {
+  it("normaliza os filtros de período e de dias parados", () => {
     expect(parseDashboardPeriod("30d")).toBe("30d");
     expect(parseDashboardPeriod("mes")).toBe("month");
     expect(parseDashboardPeriod(null)).toBe("month");
@@ -28,7 +29,7 @@ describe("lib/dashboard (011)", () => {
     expect(parseStalledDays(undefined)).toBe(DEFAULT_STALLED_DAYS);
   });
 
-  it("calcula o m��s atual no fuso da conta", () => {
+  it("calcula o mês atual no fuso da conta", () => {
     const range = dashboardPeriodRange("month", NOW, SAO_PAULO);
     expect(range.start.toISOString()).toBe("2026-11-01T03:00:00.000Z");
     expect(range.end.toISOString()).toBe(NOW.toISOString());
@@ -41,7 +42,7 @@ describe("lib/dashboard (011)", () => {
     expect(newYorkRange.start.toISOString()).toBe("2026-03-01T05:00:00.000Z");
   });
 
-  it("conta os ��ltimos 30 dias de calend��rio, incluindo hoje", () => {
+  it("conta os últimos 30 dias de calendário, incluindo hoje", () => {
     const range = dashboardPeriodRange("30d", NOW, SAO_PAULO);
     expect(range.start.toISOString()).toBe("2026-10-10T03:00:00.000Z");
     expect(range.end.toISOString()).toBe(NOW.toISOString());
@@ -51,7 +52,7 @@ describe("lib/dashboard (011)", () => {
     );
   });
 
-  it("corta 'parado' no in��cio do dia X dias atr��s", () => {
+  it("corta 'parado' no início do dia X dias atrás", () => {
     const cutoff = stalledCutoff(NOW, 7, SAO_PAULO);
     expect(cutoff.toISOString()).toBe("2026-11-01T03:00:00.000Z");
 
@@ -69,7 +70,7 @@ describe("lib/dashboard (011)", () => {
     ).toBe(false);
   });
 
-  it("usa a cria����o como fallback quando nunca houve atividade", () => {
+  it("usa a criação como fallback quando nunca houve atividade", () => {
     const cutoff = stalledCutoff(NOW, 14, SAO_PAULO);
     expect(
       isDealStalled(
@@ -85,7 +86,7 @@ describe("lib/dashboard (011)", () => {
     ).toBe(false);
   });
 
-  it("calcula a previs��o ponderada pela probabilidade da etapa", () => {
+  it("calcula a previsão ponderada pela probabilidade da etapa", () => {
     expect(
       weightedForecast([
         { totalValue: 1_000, probability: 10 },
@@ -94,7 +95,7 @@ describe("lib/dashboard (011)", () => {
       ]),
     ).toBe(1_100);
 
-    // Probabilidade corrompida n��o pode inflar a previs��o.
+    // Probabilidade corrompida não pode inflar a previsão.
     expect(
       weightedForecast([
         { totalValue: 1_000, probability: 150 },
@@ -103,11 +104,22 @@ describe("lib/dashboard (011)", () => {
     ).toBe(1_000);
   });
 
-  it("junta etapas e totais agregados, incluindo etapa sem neg��cios", () => {
+  it("calcula a taxa de ganho sobre os negócios decididos", () => {
+    expect(conversionRate(3, 1)).toBe(75);
+    expect(conversionRate(1, 3)).toBe(25);
+    expect(conversionRate(2, 2)).toBe(50);
+    // Arredonda para uma casa decimal.
+    expect(conversionRate(1, 2)).toBe(33.3);
+    expect(conversionRate(2, 1)).toBe(66.7);
+    // Sem fechamentos não existe taxa — não é 0%.
+    expect(conversionRate(0, 0)).toBeNull();
+  });
+
+  it("junta etapas e totais agregados, incluindo etapa sem negócios", () => {
     const stages = [
       { id: "novo", name: "Novo", position: 1, probability: 10 },
       { id: "proposta", name: "Proposta", position: 2, probability: 50 },
-      { id: "negociacao", name: "Negocia����o", position: 3, probability: 75 },
+      { id: "negociacao", name: "Negociação", position: 3, probability: 75 },
     ];
     const summaries = buildStageSummaries(stages, {
       novo: { count: 2, totalValue: 1_000 },
@@ -135,7 +147,7 @@ describe("lib/dashboard (011)", () => {
       },
       {
         id: "negociacao",
-        name: "Negocia����o",
+        name: "Negociação",
         position: 3,
         probability: 75,
         count: 0,

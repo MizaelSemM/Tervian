@@ -208,7 +208,7 @@ export async function updateContactNoteAction(
     const noteId = String(formData.get("noteId") ?? "").trim();
     const contactId = String(formData.get("contactId") ?? "").trim();
     const text = String(formData.get("text") ?? "");
-    if (!noteId || !contactId) return { error: "Nota inv�lida." };
+    if (!noteId || !contactId) return { error: "Nota inválida." };
 
     try {
       await updateNote({

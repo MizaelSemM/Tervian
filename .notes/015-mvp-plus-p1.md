@@ -17,10 +17,10 @@
 ## Funil e dados (P1)
 
 - [ ] **RF-24** Admin edita nome, ordem e probabilidade das etapas
-- [ ] **RF-25** Reabrir negócio fechado (com evento na timeline)
+- [x] **RF-25** Reabrir negócio fechado (com evento na timeline) — tarefa `017`
 - [ ] **RF-43** Tags e filtros por origem, etapa e responsável
-- [ ] **RF-53** Funil de conversão e principais motivos de perda (Recharts)
-- [ ] **RF-54** Exportação CSV dos dados da conta (a empresa é dona dos dados)
+- [x] **RF-53** Funil de conversão e principais motivos de perda (Recharts) — tarefa `017`
+- [x] **RF-54** Exportação CSV dos dados da conta (a empresa é dona dos dados) — tarefa `017`
 
 ## Conta (P2 previsto no PRD)
 

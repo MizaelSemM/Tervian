@@ -837,3 +837,110 @@ export async function closeDeal(input: CloseDealInput): Promise<{ contactId: str
 
   return { contactId: result.contactId };
 }
+
+export type ReopenDealInput = {
+  id: string;
+  actingUser: ActingUser;
+  nextActionAt: Date;
+  now?: Date;
+};
+
+/**
+ * Reabre um negócio ganho/perdido (RF-25).
+ *
+ * O fechamento é terminal por acidente, não por regra de negócio: se a pessoa
+ * marcou o desfecho errado, ela precisa voltar ao funil sem perder o histórico.
+ * A reabertura:
+ * - limpa o desfecho (`closedAt`, motivo e observação de perda);
+ * - exige uma nova próxima ação;
+ * - recria a tarefa aberta (ou reaproveita uma inconsistente);
+ * - registra `deal.reopened` com o estado anterior para auditoria.
+ *
+ * O valor final de um ganho é preservado: reabrir não deve zerar a negociação.
+ */
+export async function reopenDeal(input: ReopenDealInput): Promise<{ contactId: string }> {
+  const db = tenantDb();
+  const accountId = requireTenantContext().accountId;
+  const now = input.now ?? new Date();
+
+  const deal = await db.deal.findFirst({
+    where: { id: input.id, deletedAt: null, ...ownerScope(input.actingUser) },
+    select: {
+      id: true,
+      status: true,
+      ownerId: true,
+      contactId: true,
+      closedAt: true,
+      lostNote: true,
+      lostReason: { select: { name: true } },
+    },
+  });
+  if (!deal) {
+    throw new AppError("DEAL_NOT_FOUND", "Negócio não encontrado nesta conta.");
+  }
+  if (deal.status === "OPEN") {
+    throw new AppError("DEAL_ALREADY_OPEN", "Este negócio já está aberto.");
+  }
+
+  await db.$transaction(async (tx) => {
+    await tx.deal.update({
+      where: { id: deal.id },
+      data: {
+        status: "OPEN",
+        closedAt: null,
+        lostReasonId: null,
+        lostNote: null,
+        nextActionAt: input.nextActionAt,
+        lastActivityAt: now,
+      },
+    });
+
+    const openTask = await tx.task.findFirst({
+      where: { accountId, dealId: deal.id, completedAt: null },
+      orderBy: { dueAt: "asc" },
+      select: { id: true },
+    });
+
+    if (openTask) {
+      await tx.task.update({
+        where: { id: openTask.id },
+        data: {
+          ownerId: deal.ownerId,
+          type: "OTHER",
+          title: "Follow-up",
+          dueAt: input.nextActionAt,
+        },
+      });
+    } else {
+      await tx.task.create({
+        data: {
+          accountId,
+          dealId: deal.id,
+          ownerId: deal.ownerId,
+          type: "OTHER",
+          title: "Follow-up",
+          dueAt: input.nextActionAt,
+        },
+      });
+    }
+
+    await logEvent({
+      type: "deal.reopened",
+      payload: {
+        previousStatus: deal.status,
+        previousClosedAt: deal.closedAt?.toISOString() ?? null,
+        previousLostReason: deal.lostReason?.name ?? null,
+        previousLostNote: deal.lostNote,
+        nextActionAt: input.nextActionAt.toISOString(),
+      },
+      dealId: deal.id,
+      contactId: deal.contactId,
+      actorId: input.actingUser.id,
+      client: tx,
+    });
+  });
+
+  trackEvent("deal_reopened", { previous_status: deal.status });
+
+  return { contactId: deal.contactId };
+}

@@ -30,10 +30,10 @@ function chartHeight(count: number): number {
 }
 
 /**
- * Gr��ficos do painel (tarefa 011).
+ * Gráficos do painel (tarefa 011).
  *
- * Recebem SOMENTE o resumo agregado por etapa. A lista crua de neg��cios fica no
- * servidor; Recharts n��o precisa dela para desenhar as barras.
+ * Recebem SOMENTE o resumo agregado por etapa. A lista crua de negócios fica no
+ * servidor; Recharts não precisa dela para desenhar as barras.
  */
 export function DashboardCharts({ stages }: { stages: StageChartDatum[] }) {
   const height = chartHeight(stages.length);
@@ -42,7 +42,7 @@ export function DashboardCharts({ stages }: { stages: StageChartDatum[] }) {
     <div className="grid gap-6 lg:grid-cols-2">
       <div>
         <p className="mb-3 text-sm font-medium">Valor por etapa</p>
-        <div style={{ height }} aria-label="Gr��fico de valor por etapa do funil">
+        <div style={{ height }} aria-label="Gráfico de valor por etapa do funil">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={stages}
@@ -84,8 +84,8 @@ export function DashboardCharts({ stages }: { stages: StageChartDatum[] }) {
       </div>
 
       <div>
-        <p className="mb-3 text-sm font-medium">Neg��cios por etapa</p>
-        <div style={{ height }} aria-label="Gr��fico de quantidade de neg��cios por etapa do funil">
+        <p className="mb-3 text-sm font-medium">Negócios por etapa</p>
+        <div style={{ height }} aria-label="Gráfico de quantidade de negócios por etapa do funil">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={stages}
@@ -112,11 +112,11 @@ export function DashboardCharts({ stages }: { stages: StageChartDatum[] }) {
               <Tooltip
                 cursor={{ fill: "var(--muted)", opacity: 0.5 }}
                 contentStyle={tooltipStyle}
-                formatter={(value) => [Number(value), "Neg��cios"]}
+                formatter={(value) => [Number(value), "Negócios"]}
               />
               <Bar
                 dataKey="count"
-                name="Neg��cios"
+                name="Negócios"
                 fill="var(--chart-3)"
                 radius={[0, 4, 4, 0]}
                 maxBarSize={28}
