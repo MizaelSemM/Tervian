@@ -1,7 +1,7 @@
 # ✅ TODO — CRM de Follow-up para Pequenas Equipes de Vendas (MVP)
 
 **Fonte:** [PRD – CRM de Follow-up para Pequenas Equipes de Vendas (MVP)](<../PRD – CRM de Follow-up para Pequenas Equipes de Vendas (MVP).md>)
-**Atualizado em:** 14/11/2026 · **Fase atual:** 3 — Qualidade e lançamento · **Prazo recalibrado: ~6–8 semanas** (ritmo ~20–25h/semana)
+**Atualizado em:** 17/11/2026 · **Fase atual:** 3 — Qualidade e lançamento · **Prazo recalibrado: ~6–8 semanas** (ritmo ~20–25h/semana)
 
 ---
 
@@ -44,6 +44,7 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
   - [ ] Vercel + Sentry + PostHog → **precisam das contas do dono**
   - [ ] Resend → conta + domínio verificado para e-mails reais de convite/reset (em dev o link cai no console)
   - [ ] Supabase: recriar o projeto em **São Paulo** antes do piloto (hoje está em us-east-1; sem dados reais, é só trocar as strings do `.env` — ver `000`)
+- [ ] **picomatch (dev/build)** — aguardando versão corrigida para a ReDoS GHSA-fc5q-39xc-vjpf; o PR upstream #194 segue aberto e não há release corrigido. Auditoria de produção (`--omit=dev --omit=optional`) está em 0; detalhes no `018`.
 
 ---
 
@@ -106,6 +107,7 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
 - [x] 14/11/2026 — **Dependabot em dia**: PRs #14–#17 mergeados (Actions e grupo minor/patch), majors de TypeScript e `@types/node` ignorados no `.github/dependabot.yml`; PRs #18, #19 e #7 fechados
 - [x] 14/11/2026 — **014 · Testes e QA concluída**: 165 testes de unidade/integração e 18 E2E (14 verdes, 4 skip mobile) verdes no CI; correções de preservação do formulário, seletor `role=alert`, destino `/hoje` e `dealsCreated` da importação — cobertura mínima de `server/services/` fica como melhoria da 016
 - [x] 14/11/2026 — **Cadastro em produção validado**: o `P1000` sumiu após o deploy do `master` com a env correta; um signup real criou a conta e caiu em `/hoje`, e a conta de teste foi removida em seguida
+- [x] 17/11/2026 — **018 · Auditoria de dependências**: `fast-uri` 3.1.9, `typescript-eslint` 8.73.0 e auditoria de produção no CI com `--omit=optional` — produção em 0 vulnerabilidades; restam 22 avisos dev (20 do `picomatch`, sem patch publicado, e 2 do `minimatch`/`ts-morph`)
 
 ---
 

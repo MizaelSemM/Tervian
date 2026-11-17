@@ -70,7 +70,11 @@ jobs:
         run: npm run lint
 
       - name: Auditoria de dependências de produção
-        run: npm audit --omit=dev --audit-level=high
+        # `--omit=optional`: o better-auth declara `vitest` como peer OPCIONAL de
+        # teste. Sem omitir, o npm trata toda a árvore do Vitest como produção e
+        # acusa o ReDoS do `picomatch` (dev/build) como se fosse dependência de
+        # runtime. A auditoria de produção real é feita com `--omit=dev --omit=optional`.
+        run: npm audit --omit=dev --omit=optional --audit-level=high
 
       - name: Typecheck
         run: npm run typecheck
