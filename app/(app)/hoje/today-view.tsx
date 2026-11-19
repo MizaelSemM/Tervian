@@ -17,7 +17,9 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MessageComposer } from "@/components/message-composer";
 import type { TodayData, TodayTask } from "@/lib/followup-types";
+import type { MessageTemplateRecord } from "@/lib/message-template";
 import { formatPhoneBR, whatsappLinkBR } from "@/lib/phone";
 import { TASK_RESULT_LABELS } from "@/lib/schemas/deal";
 import { TASK_RESULT_VALUES, type TaskResultValue } from "@/lib/schemas/followup";
@@ -49,11 +51,15 @@ const selectClassName =
 export function TodayView({
   data,
   firstName,
+  sellerName,
   isAdmin,
+  messageTemplates,
 }: {
   data: TodayData;
   firstName: string;
+  sellerName: string;
   isAdmin: boolean;
+  messageTemplates: MessageTemplateRecord[];
 }) {
   const [state, applyComplete] = useOptimistic(data, (current, taskId: string) => {
     const wasOverdue = current.overdue.some((task) => task.id === taskId);
@@ -191,6 +197,8 @@ export function TodayView({
               pendingTaskId={pendingTaskId}
               lostReasons={state.lostReasons}
               todayKey={state.todayKey}
+              sellerName={sellerName}
+              messageTemplates={messageTemplates}
               onToggle={(id) => setExpandedId((current) => (current === id ? null : id))}
               onComplete={handleComplete}
             />
@@ -207,6 +215,8 @@ export function TodayView({
               pendingTaskId={pendingTaskId}
               lostReasons={state.lostReasons}
               todayKey={state.todayKey}
+              sellerName={sellerName}
+              messageTemplates={messageTemplates}
               onToggle={(id) => setExpandedId((current) => (current === id ? null : id))}
               onComplete={handleComplete}
             />
@@ -280,6 +290,8 @@ function TaskSection({
   pendingTaskId,
   lostReasons,
   todayKey,
+  sellerName,
+  messageTemplates,
   onToggle,
   onComplete,
 }: {
@@ -292,6 +304,8 @@ function TaskSection({
   pendingTaskId: string | null;
   lostReasons: Array<{ id: string; name: string }>;
   todayKey: string;
+  sellerName: string;
+  messageTemplates: MessageTemplateRecord[];
   onToggle: (id: string) => void;
   onComplete: (task: TodayTask, input: CompleteInput) => void;
 }) {
@@ -316,6 +330,8 @@ function TaskSection({
             pending={pendingTaskId === task.id}
             lostReasons={lostReasons}
             todayKey={todayKey}
+            sellerName={sellerName}
+            messageTemplates={messageTemplates}
             onToggle={() => onToggle(task.id)}
             onComplete={(input) => onComplete(task, input)}
           />
@@ -333,6 +349,8 @@ function TaskCard({
   pending,
   lostReasons,
   todayKey,
+  sellerName,
+  messageTemplates,
   onToggle,
   onComplete,
 }: {
@@ -343,6 +361,8 @@ function TaskCard({
   pending: boolean;
   lostReasons: Array<{ id: string; name: string }>;
   todayKey: string;
+  sellerName: string;
+  messageTemplates: MessageTemplateRecord[];
   onToggle: () => void;
   onComplete: (input: CompleteInput) => void;
 }) {
@@ -417,6 +437,18 @@ function TaskCard({
           <PhoneIcon />
           Ligar
         </a>
+        <div className="col-span-2">
+          <MessageComposer
+            templates={messageTemplates}
+            contactName={task.contactName}
+            companyName={task.contactCompany}
+            sellerName={sellerName}
+            phone={task.contactPhone}
+            stageId={task.stageId}
+            triggerLabel="Mensagem pronta"
+            triggerClassName="h-11 w-full"
+          />
+        </div>
         <Button
           className="col-span-2 h-11"
           variant={expanded ? "secondary" : "default"}

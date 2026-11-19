@@ -48,11 +48,17 @@ export function formatPhoneBR(e164: string): string {
   return `(${ddd}) ${rest.slice(0, 4)}-${rest.slice(4)}`;
 }
 
-/** Link wa.me pronto para "Abrir no WhatsApp" (RF-13). */
-export function whatsappLinkBR(e164: string): string | null {
+/**
+ * Link wa.me pronto para "Abrir no WhatsApp" (RF-13).
+ * Com `text`, a conversa já abre com a mensagem pronta (RF-36).
+ */
+export function whatsappLinkBR(e164: string, text?: string): string | null {
   const normalized = normalizePhoneBR(e164);
   if (!normalized) return null;
-  return `https://wa.me/${normalized.replace("+", "")}`;
+
+  const base = `https://wa.me/${normalized.replace("+", "")}`;
+  const message = text?.trim();
+  return message ? `${base}?text=${encodeURIComponent(message)}` : base;
 }
 
 /**

@@ -10,10 +10,12 @@ export type TodayTask = {
   dealId: string;
   dealTitle: string;
   dealValue: number | null;
+  stageId: string;
   stageName: string;
   contactId: string;
   contactName: string;
   contactPhone: string;
+  contactCompany: string | null;
   ownerId: string;
   ownerName: string;
 };

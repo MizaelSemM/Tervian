@@ -61,6 +61,16 @@ describe("whatsappLinkBR", () => {
     expect(whatsappLinkBR("(11) 98765-4321")).toBe("https://wa.me/5511987654321");
   });
 
+  it("inclui a mensagem pronta encoded no link", () => {
+    expect(whatsappLinkBR("(11) 98765-4321", "Oi, Carla! Tudo bem?")).toBe(
+      "https://wa.me/5511987654321?text=Oi%2C%20Carla!%20Tudo%20bem%3F",
+    );
+  });
+
+  it("ignora texto vazio ou só espaços", () => {
+    expect(whatsappLinkBR("(11) 98765-4321", "   ")).toBe("https://wa.me/5511987654321");
+  });
+
   it("retorna null para telefone inválido", () => {
     expect(whatsappLinkBR("abc")).toBeNull();
   });

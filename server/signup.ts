@@ -7,6 +7,7 @@ import type { SignUpCompanyInput } from "@/lib/schemas/auth";
 import { isAlreadyExistsError } from "@/server/auth-errors";
 import { AppError } from "@/server/errors";
 import { createDefaultLostReasonsForAccount } from "@/server/services/lost-reasons";
+import { createDefaultMessageTemplatesForAccount } from "@/server/services/message-templates";
 import { createDefaultPipelineForAccount } from "@/server/services/pipeline";
 
 /**
@@ -41,6 +42,7 @@ export async function signUpCompany(
   try {
     await createDefaultPipelineForAccount(account.id);
     await createDefaultLostReasonsForAccount(account.id);
+    await createDefaultMessageTemplatesForAccount(account.id);
 
     const result = await runWithSignupContext({ accountId: account.id, role: "ADMIN" }, () =>
       auth.api.signUpEmail({
@@ -100,6 +102,8 @@ async function createAccount(companyName: string) {
 async function rollbackAccount(accountId: string): Promise<void> {
   try {
     await prismaBase.$transaction(async (tx) => {
+      await tx.cadenceRule.deleteMany({ where: { accountId } });
+      await tx.messageTemplate.deleteMany({ where: { accountId } });
       await tx.lostReason.deleteMany({ where: { accountId } });
       await tx.stage.deleteMany({ where: { accountId } });
       await tx.pipeline.deleteMany({ where: { accountId } });

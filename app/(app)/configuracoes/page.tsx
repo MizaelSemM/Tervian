@@ -5,19 +5,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { env } from "@/lib/env";
 import { PRIVACY_PATH, TERMS_PATH } from "@/lib/lgpd";
 import { withAdmin } from "@/lib/session";
+import { listMessageTemplates } from "@/server/services/message-templates";
+import { getPipelineStages } from "@/server/services/pipeline";
 import { getPublicFormSettings, listPublicFormOwners } from "@/server/services/public-form";
 
+import { MessageTemplatesSettings } from "./message-templates-settings";
 import { PublicFormSettingsForm } from "./public-form-settings";
 
 export const metadata = { title: "Configurações — Tervian" };
 
 /**
- * Configurações da conta (010 + 013): formulário público e privacidade/LGPD.
- * Só ADMIN acessa; `withAdmin` abre o contexto de tenant usado pelos serviços.
+ * Configurações da conta (010 + 013 + 019): formulário público, modelos de
+ * mensagem e privacidade/LGPD. Só ADMIN acessa; `withAdmin` abre o contexto de
+ * tenant usado pelos serviços.
  */
 export default async function SettingsPage() {
   return withAdmin(async () => {
-    const [settings, owners] = await Promise.all([getPublicFormSettings(), listPublicFormOwners()]);
+    const [settings, owners, templates, stages] = await Promise.all([
+      getPublicFormSettings(),
+      listPublicFormOwners(),
+      listMessageTemplates(),
+      getPipelineStages(),
+    ]);
 
     return (
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
@@ -29,6 +38,8 @@ export default async function SettingsPage() {
         </div>
 
         <PublicFormSettingsForm settings={settings} owners={owners} baseUrl={env.BETTER_AUTH_URL} />
+
+        <MessageTemplatesSettings templates={templates} stages={stages} />
 
         <Card>
           <CardHeader>

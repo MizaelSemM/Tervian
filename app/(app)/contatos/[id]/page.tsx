@@ -4,12 +4,14 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { MessageComposer } from "@/components/message-composer";
 import { formatPhoneBR, whatsappLinkBR } from "@/lib/phone";
 import { CONTACT_ORIGIN_LABELS, type ContactOrigin } from "@/lib/schemas/contact";
 import { withSession, type AuthedSession } from "@/lib/session";
 import { formatCurrencyBR, formatDateBR } from "@/lib/utils";
 import { getContact } from "@/server/services/contacts";
 import { getAccountTimeZone } from "@/server/services/followup";
+import { listMessageTemplates } from "@/server/services/message-templates";
 import { listOwnerOptions, type ActingUser } from "@/server/services/owners";
 
 import { ContactPanel } from "./contact-panel";
@@ -48,8 +50,11 @@ export default async function ContactDetailPage({
     const contact = await getContact({ id, actingUser });
     if (!contact) notFound();
 
-    const owners = await listOwnerOptions(actingUser);
-    const timeZone = await getAccountTimeZone();
+    const [owners, timeZone, messageTemplates] = await Promise.all([
+      listOwnerOptions(actingUser),
+      getAccountTimeZone(),
+      listMessageTemplates(),
+    ]);
     const whatsapp = whatsappLinkBR(contact.phone);
     const originLabel = contact.origin
       ? CONTACT_ORIGIN_LABELS[contact.origin as ContactOrigin]
@@ -90,6 +95,15 @@ export default async function ContactDetailPage({
                 Abrir no WhatsApp
               </a>
             )}
+            <MessageComposer
+              templates={messageTemplates}
+              contactName={contact.name}
+              companyName={contact.companyText}
+              sellerName={session.user.name}
+              phone={contact.phone}
+              triggerSize="lg"
+              triggerLabel="Mensagem pronta"
+            />
             <a
               href={`tel:${contact.phone}`}
               className={buttonVariants({ variant: "outline", size: "lg" })}

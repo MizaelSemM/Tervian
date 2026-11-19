@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MessageComposer } from "@/components/message-composer";
 import { formatPhoneBR, whatsappLinkBR } from "@/lib/phone";
 import { DEAL_STATUS_LABELS } from "@/lib/schemas/deal";
 import { withSession } from "@/lib/session";
@@ -12,6 +13,7 @@ import { daysSinceBR, formatCurrencyBR, formatDateBR, nextActionLabelBR } from "
 import { getDeal } from "@/server/services/deals";
 import { getAccountTimeZone } from "@/server/services/followup";
 import { listLostReasons } from "@/server/services/lost-reasons";
+import { listMessageTemplates } from "@/server/services/message-templates";
 import { listOwnerOptions, type ActingUser } from "@/server/services/owners";
 import { getPipelineStages } from "@/server/services/pipeline";
 
@@ -64,11 +66,12 @@ export default async function DealDetailPage({
     if (!deal) notFound();
 
     const isOpen = deal.status === "OPEN";
-    const [stages, owners, lostReasons, timeZone] = await Promise.all([
+    const [stages, owners, lostReasons, timeZone, messageTemplates] = await Promise.all([
       getPipelineStages(),
       listOwnerOptions(actingUser),
       isOpen ? listLostReasons() : Promise.resolve([]),
       getAccountTimeZone(),
+      listMessageTemplates(),
     ]);
 
     const whatsapp = whatsappLinkBR(deal.contact.phone);
@@ -116,6 +119,14 @@ export default async function DealDetailPage({
                   WhatsApp
                 </a>
               )}
+              <MessageComposer
+                templates={messageTemplates}
+                contactName={deal.contact.name}
+                companyName={deal.contactCompany}
+                sellerName={session.user.name}
+                phone={deal.contact.phone}
+                stageId={deal.stageId}
+              />
               <a
                 href={`tel:${deal.contact.phone}`}
                 className={buttonVariants({ variant: "outline", size: "sm" })}
