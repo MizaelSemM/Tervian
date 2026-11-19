@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
 
 import { createLead, signUp } from "./helpers";
 
@@ -6,6 +6,16 @@ import { createLead, signUp } from "./helpers";
  * Modelos de mensagem (RF-36): o admin cria em Configurações e o vendedor usa
  * na tela "Hoje", com as variáveis já preenchidas e o link do WhatsApp.
  */
+
+/**
+ * No mobile a navegação inferior é fixa e cobre o rodapé da viewport. Ao rolar
+ * um alvo para a borda de baixo, o Playwright tenta clicar na nav; centralizar
+ * o elemento mantém o clique no botão.
+ */
+async function clickInViewport(locator: Locator) {
+  await locator.evaluate((element) => element.scrollIntoView({ block: "center" }));
+  await locator.click();
+}
 
 test("cria modelo e envia pela tela Hoje com variáveis preenchidas", async ({ page }) => {
   const admin = await signUp(page);
@@ -15,7 +25,7 @@ test("cria modelo e envia pela tela Hoje com variáveis preenchidas", async ({ p
   await page.goto("/configuracoes");
   await page.getByLabel("Nome do modelo").fill(templateName);
   await page.getByLabel("Mensagem", { exact: true }).fill("Oi, {nome}! Aqui é {vendedor}.");
-  await page.getByRole("button", { name: "Criar modelo" }).click();
+  await clickInViewport(page.getByRole("button", { name: "Criar modelo" }));
 
   await expect(page.getByText("Modelo criado.")).toBeVisible();
   await expect(page.getByText(templateName, { exact: true })).toBeVisible();
@@ -26,7 +36,7 @@ test("cria modelo e envia pela tela Hoje com variáveis preenchidas", async ({ p
 
   const card = page.locator("article").filter({ hasText: leadName });
   await expect(card).toBeVisible();
-  await card.getByRole("button", { name: "Mensagem pronta" }).click();
+  await clickInViewport(card.getByRole("button", { name: "Mensagem pronta" }));
 
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
@@ -51,20 +61,20 @@ test("edita e exclui um modelo em Configurações", async ({ page }) => {
   await page.goto("/configuracoes");
   await page.getByLabel("Nome do modelo").fill(templateName);
   await page.getByLabel("Mensagem", { exact: true }).fill("Oi, {nome}! Mensagem original.");
-  await page.getByRole("button", { name: "Criar modelo" }).click();
+  await clickInViewport(page.getByRole("button", { name: "Criar modelo" }));
   await expect(page.getByText(templateName, { exact: true })).toBeVisible();
 
   const row = page.locator("li").filter({ hasText: templateName });
-  await row.getByRole("button", { name: "Editar" }).click();
+  await clickInViewport(row.getByRole("button", { name: "Editar" }));
   await row.getByLabel("Nome do modelo").fill(updatedName);
-  await row.getByRole("button", { name: "Salvar modelo" }).click();
+  await clickInViewport(row.getByRole("button", { name: "Salvar modelo" }));
 
   await expect(page.getByText("Modelo atualizado.")).toBeVisible();
   await expect(page.getByText(updatedName, { exact: true })).toBeVisible();
 
   page.on("dialog", (dialog) => dialog.accept());
   const updatedRow = page.locator("li").filter({ hasText: updatedName });
-  await updatedRow.getByRole("button", { name: "Excluir" }).click();
+  await clickInViewport(updatedRow.getByRole("button", { name: "Excluir" }));
 
   await expect(page.getByText("Modelo excluído.")).toBeVisible();
   await expect(page.getByText(updatedName, { exact: true })).toHaveCount(0);

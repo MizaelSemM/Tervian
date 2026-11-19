@@ -51,8 +51,15 @@
 - `tests/unit/phone.test.ts`: link com mensagem encodada e texto vazio.
 - `tests/integration/message-templates.test.ts`: seed idempotente, CRUD, nome único, etapa
   sugerida, criação no cadastro e isolamento entre contas.
-- `e2e/message-templates.spec.ts`: admin cria o modelo em Configurações, vendedor usa na tela
-  “Hoje” com `{nome}`/`{vendedor}` preenchidos e confere o link do WhatsApp; edição e exclusão.
+- `e2e/message-templates.spec.ts`: admin cria o modelo em Configurações, usa na tela “Hoje”
+  com `{nome}`/`{vendedor}` preenchidos e confere o link do WhatsApp; edição e exclusão.
+
+### Correção de mobile encontrada no E2E
+
+- O snippet de embed do formulário público estourava a largura de Configurações no mobile: o
+  layout viewport ia para 1310px, o conteúdo era cortado e o botão “Criar modelo” ficava sob o
+  card anterior. O grid passou a usar `grid-cols-1` (trilha `minmax(0, 1fr)`) e o `<pre>` do
+  embed quebra linha (`break-all whitespace-pre-wrap`).
 
 ---
 
@@ -81,7 +88,7 @@
 - [x] `npm run typecheck`
 - [x] `npm test` — 189 testes (unidade + integração, 23 arquivos)
 - [x] `npm run build`
-- [x] `npx playwright test e2e/message-templates.spec.ts --project=desktop-chrome` — 2/2
+- [x] `npx playwright test e2e/message-templates.spec.ts` — 4/4 (2 cenários × mobile/desktop)
 
 ---
 

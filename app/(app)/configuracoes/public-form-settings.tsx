@@ -57,7 +57,7 @@ export function PublicFormSettingsForm({
   const embed = publicFormEmbedSnippet(url);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
       <Card>
         <CardHeader>
           <CardTitle>Formulário público</CardTitle>
@@ -267,7 +267,7 @@ export function PublicFormSettingsForm({
             <CardDescription>Cole o HTML onde o formulário deve aparecer.</CardDescription>
           </CardHeader>
           <CardContent>
-            <pre className="max-h-32 overflow-auto rounded-lg bg-muted p-3 text-[11px] leading-relaxed">
+            <pre className="max-h-32 overflow-auto rounded-lg bg-muted p-3 text-[11px] leading-relaxed break-all whitespace-pre-wrap">
               <code>{embed}</code>
             </pre>
           </CardContent>
