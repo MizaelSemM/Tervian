@@ -198,8 +198,8 @@ export function ImportCsvView() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Importar contatos</h1>
           <p className="text-sm text-muted-foreground">
-            Envie um CSV com nome e telefone. Cada linha válida cria um contato, um negócio na etapa
-            “Novo” e uma tarefa para hoje.
+            Envie um CSV com nome e telefone. Cada linha válida cria um contato, um negócio na
+            primeira etapa do funil e uma tarefa para hoje.
           </p>
         </div>
         <Link href="/contatos" className="text-sm text-muted-foreground hover:text-foreground">

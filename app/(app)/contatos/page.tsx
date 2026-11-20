@@ -81,7 +81,8 @@ export default async function ContactsPage({
 
         {novo && (
           <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
-            Lead criado! O negócio já está na etapa “Novo” e o primeiro contato ficou para hoje.
+            Lead criado! O negócio já está na primeira etapa do funil e o primeiro contato ficou
+            para hoje.
           </p>
         )}
         {salvo && (

@@ -34,8 +34,8 @@ export default async function NewContactPage() {
           </Link>
           <h1 className="text-2xl font-semibold tracking-tight">Novo lead</h1>
           <p className="text-muted-foreground">
-            Só nome e telefone. O negócio na etapa “Novo” e a tarefa de primeiro contato para hoje
-            são criados automaticamente.
+            Só nome e telefone. O negócio na primeira etapa do funil e a tarefa de primeiro contato
+            para hoje são criados automaticamente.
           </p>
         </div>
 

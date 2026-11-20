@@ -1,5 +1,13 @@
+import {
+  PIPELINE_STAGE_NAME_MAX,
+  PIPELINE_STAGE_NAME_MIN,
+  PIPELINE_STAGE_PROBABILITY_MAX,
+  PIPELINE_STAGE_PROBABILITY_MIN,
+  type PipelineStageUpdate,
+} from "@/lib/pipeline";
 import { requireTenantContext } from "@/lib/tenant-context";
 import { createTenantClient, tenantDb, type TenantClient } from "@/lib/tenant-prisma";
+import { AppError } from "@/server/errors";
 
 /**
  * Funil padrão do MVP (RF-20) — tarefa 005.
@@ -12,6 +20,10 @@ import { createTenantClient, tenantDb, type TenantClient } from "@/lib/tenant-pr
  * (`ensureDefaultPipeline`), para contas anteriores à 005 também funcionarem.
  * Os IDs são determinísticos por conta — dois `createLead()` concorrentes não
  * duplicam o funil (upsert idempotente).
+ *
+ * Desde a RF-24 o admin pode renomear, reordenar e ajustar a probabilidade das
+ * etapas em Configurações. A PRIMEIRA etapa (posição 1) é a entrada de novos
+ * leads, então renomear "Novo" ou mudar a ordem não quebra a captura.
  */
 
 export const DEFAULT_PIPELINE_NAME = "Comercial";
@@ -78,9 +90,11 @@ export async function createDefaultPipelineForAccount(accountId: string): Promis
 }
 
 /**
- * Garante um funil com etapa "Novo" na conta atual. Usado por `createLead()`
- * para contas criadas antes da 005 (ex.: a conta do piloto). Exige contexto de
- * tenant.
+ * Garante um funil na conta atual. Usado por `createLead()` para contas criadas
+ * antes da 005 (ex.: a conta do piloto). Exige contexto de tenant.
+ *
+ * A entrada de novos leads é a primeira etapa da ordem atual: o admin pode
+ * renomear "Novo" ou reordenar o funil sem deixar a captura presa a um nome.
  */
 export async function ensureDefaultPipeline(): Promise<DefaultPipeline> {
   const db = tenantDb();
@@ -99,12 +113,97 @@ export async function ensureDefaultPipeline(): Promise<DefaultPipeline> {
   });
   if (stages.length === 0) stages = await seedStages(db, accountId, pipeline.id);
 
-  const newStage =
-    stages.find(
-      (stage) => stage.name.trim().toLowerCase() === DEFAULT_NEW_STAGE_NAME.toLowerCase(),
-    ) ?? stages[0];
+  const newStage = stages[0];
 
   return { pipelineId: pipeline.id, newStage, stages };
+}
+
+/**
+ * Salva nome, probabilidade e ordem das etapas do funil (RF-24).
+ *
+ * O array recebido É a nova ordem. A transação confere se todos os IDs ainda
+ * pertencem ao funil atual (protege contra formulário velho e contra etapa de
+ * outra conta) e reatribui posições 1..N. O client de tenant já restringe as
+ * escritas à conta; a checagem de conjunto evita salvar uma ordem parcial.
+ */
+export async function updatePipelineStages(input: PipelineStageUpdate[]): Promise<StageRef[]> {
+  const db = tenantDb();
+  const { pipelineId } = await ensureDefaultPipeline();
+
+  if (input.length === 0) {
+    throw new AppError("PIPELINE_STAGES_INVALID", "Mantenha pelo menos uma etapa no funil.");
+  }
+
+  const stages = input.map((stage) => ({
+    id: stage.id.trim(),
+    name: stage.name.trim(),
+    probability: stage.probability,
+  }));
+
+  const ids = new Set<string>();
+  const names = new Set<string>();
+
+  stages.forEach((stage, index) => {
+    if (!stage.id) {
+      throw new AppError("PIPELINE_STAGE_INVALID", "Etapa inválida.");
+    }
+    if (
+      stage.name.length < PIPELINE_STAGE_NAME_MIN ||
+      stage.name.length > PIPELINE_STAGE_NAME_MAX
+    ) {
+      throw new AppError(
+        "PIPELINE_STAGE_INVALID",
+        `O nome da etapa ${index + 1} precisa ter entre ${PIPELINE_STAGE_NAME_MIN} e ${PIPELINE_STAGE_NAME_MAX} caracteres.`,
+      );
+    }
+    if (
+      !Number.isInteger(stage.probability) ||
+      stage.probability < PIPELINE_STAGE_PROBABILITY_MIN ||
+      stage.probability > PIPELINE_STAGE_PROBABILITY_MAX
+    ) {
+      throw new AppError(
+        "PIPELINE_STAGE_INVALID",
+        `A probabilidade da etapa ${index + 1} deve ser um número inteiro entre ${PIPELINE_STAGE_PROBABILITY_MIN} e ${PIPELINE_STAGE_PROBABILITY_MAX}.`,
+      );
+    }
+    if (ids.has(stage.id)) {
+      throw new AppError("PIPELINE_STAGE_DUPLICATED", "Etapa duplicada no formulário.");
+    }
+    ids.add(stage.id);
+
+    const nameKey = stage.name.toLocaleLowerCase("pt-BR");
+    if (names.has(nameKey)) {
+      throw new AppError("PIPELINE_STAGE_NAME_TAKEN", "Já existe uma etapa com esse nome.");
+    }
+    names.add(nameKey);
+  });
+
+  const current = await db.stage.findMany({
+    where: { pipelineId },
+    select: { id: true },
+  });
+  const currentIds = new Set(current.map((stage) => stage.id));
+  if (current.length !== stages.length || stages.some((stage) => !currentIds.has(stage.id))) {
+    throw new AppError(
+      "PIPELINE_STAGES_CHANGED",
+      "As etapas do funil mudaram. Recarregue a página e tente novamente.",
+    );
+  }
+
+  await db.$transaction(async (tx) => {
+    for (const [index, stage] of stages.entries()) {
+      await tx.stage.update({
+        where: { id: stage.id },
+        data: {
+          name: stage.name,
+          probability: stage.probability,
+          position: index + 1,
+        },
+      });
+    }
+  });
+
+  return stages.map((stage, index) => ({ ...stage, position: index + 1 }));
 }
 
 /**

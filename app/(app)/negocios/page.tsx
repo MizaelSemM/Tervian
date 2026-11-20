@@ -189,8 +189,8 @@ export default async function NegociosPage({
           <div className="rounded-xl border border-dashed border-border px-4 py-8 text-center">
             <p className="text-sm font-medium">Nenhum negócio aberto no funil.</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Cadastre um lead em segundos — o negócio na etapa “Novo” e a primeira ação são criados
-              juntos.
+              Cadastre um lead em segundos — o negócio na primeira etapa do funil e a primeira ação
+              são criados juntos.
             </p>
             <Link
               href="/contatos/novo"

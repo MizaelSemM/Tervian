@@ -10,14 +10,15 @@ import { getPipelineStages } from "@/server/services/pipeline";
 import { getPublicFormSettings, listPublicFormOwners } from "@/server/services/public-form";
 
 import { MessageTemplatesSettings } from "./message-templates-settings";
+import { PipelineStagesSettings } from "./pipeline-stages-settings";
 import { PublicFormSettingsForm } from "./public-form-settings";
 
 export const metadata = { title: "Configurações — Tervian" };
 
 /**
- * Configurações da conta (010 + 013 + 019): formulário público, modelos de
- * mensagem e privacidade/LGPD. Só ADMIN acessa; `withAdmin` abre o contexto de
- * tenant usado pelos serviços.
+ * Configurações da conta (010 + 013 + 019 + 020): formulário público, etapas
+ * do funil, modelos de mensagem e privacidade/LGPD. Só ADMIN acessa; `withAdmin`
+ * abre o contexto de tenant usado pelos serviços.
  */
 export default async function SettingsPage() {
   return withAdmin(async () => {
@@ -38,6 +39,8 @@ export default async function SettingsPage() {
         </div>
 
         <PublicFormSettingsForm settings={settings} owners={owners} baseUrl={env.BETTER_AUTH_URL} />
+
+        <PipelineStagesSettings stages={stages} />
 
         <MessageTemplatesSettings templates={templates} stages={stages} />
 
