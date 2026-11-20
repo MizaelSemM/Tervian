@@ -322,8 +322,8 @@ export async function importRowsChunk(input: {
 
       if (created.status !== "duplicate") {
         result.imported += 1;
-        // Cada lead novo cria também o negócio na etapa "Novo" — o relatório
-        // precisa contar esses negócios (antes ficava sempre em 0).
+        // Cada lead novo cria também o negócio na primeira etapa do funil — o
+        // relatório precisa contar esses negócios (antes ficava sempre em 0).
         if (created.status === "created") result.dealsCreated += 1;
         continue;
       }

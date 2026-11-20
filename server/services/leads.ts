@@ -13,8 +13,8 @@ import { logEvent } from "@/server/services/timeline";
  * Captura de lead — serviço único da tarefa 005 (US-03).
  *
  * Regra do PRD: nome + telefone criam, na mesma transação:
- *   contato → negócio na etapa "Novo" (responsável = quem capturou) →
- *   tarefa "Primeiro contato" para hoje → evento na timeline.
+ *   contato → negócio na primeira etapa do funil (responsável = quem capturou)
+ *   → tarefa "Primeiro contato" para hoje → evento na timeline.
  *
  * Reutilizado pelo cadastro manual (005), importação CSV (009) e formulário
  * público (010) — por isso valida tudo de novo e não depende de UI.
