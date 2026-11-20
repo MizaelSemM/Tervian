@@ -12,7 +12,7 @@
 - [ ] **Executor de jobs** (Vercel Cron ou pg-boss — decisão no `000`): idempotente, log de execução, sem tarefa duplicada
 - [ ] **RF-34 Alerta de negócio parado** (X dias configurável): aparece na tela "Hoje" e no painel do gestor
 - [ ] **RF-35 Resumo diário por e-mail às 8h** (Resend) com as tarefas do dia, respeitando o fuso da conta
-- [ ] **RF-36 Templates de mensagem** com variáveis (`{nome}`, `{empresa}`, `{vendedor}`), copiáveis ou embutidos no link do WhatsApp
+- [x] **RF-36 Templates de mensagem** com variáveis (`{nome}`, `{empresa}`, `{vendedor}`), copiáveis ou embutidos no link do WhatsApp — tarefa `019`
 
 ## Funil e dados (P1)
 
