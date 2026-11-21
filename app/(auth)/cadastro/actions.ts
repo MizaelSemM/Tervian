@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { firstIssueMessage, signUpCompanySchema } from "@/lib/schemas/auth";
 import { AppError } from "@/server/errors";
 import { signUpCompany } from "@/server/signup";
+import { SIGNUPS_CLOSED_MESSAGE, areSignupsOpen } from "@/server/signup-gate";
 
 /** Campos devolvidos ao formulário para não perder o que a pessoa digitou. */
 export type SignUpFormValues = { companyName: string; name: string; email: string };
@@ -24,6 +25,12 @@ export async function signUpCompanyAction(
   _previous: SignUpFormState,
   formData: FormData,
 ): Promise<SignUpFormState> {
+  // A página esconde o formulário quando a flag está fechada, mas a action é um
+  // endpoint público: bloqueia também quem POSTar direto ou com form antigo.
+  if (!areSignupsOpen()) {
+    return { error: SIGNUPS_CLOSED_MESSAGE, values: submittedValues(formData) };
+  }
+
   const parsed = signUpCompanySchema.safeParse({
     companyName: formData.get("companyName"),
     name: formData.get("name"),
