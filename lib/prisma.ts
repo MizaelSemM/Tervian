@@ -14,10 +14,18 @@ import { env } from "@/lib/env";
  * Em dev o Next recarrega os módulos a cada mudança; o cache em globalThis
  * evita abrir um pool de conexões novo a cada reload.
  */
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
+const globalForPrisma = globalThis as unknown as {
+  prisma?: PrismaClient;
+};
 
 function createPrismaClient() {
-  const adapter = new PrismaPg({ connectionString: env.DATABASE_URL });
+  const adapter = new PrismaPg({
+    connectionString: env.DATABASE_URL,
+    max: 3,
+    idleTimeoutMillis: 10_000,
+    connectionTimeoutMillis: 5_000,
+  });
+
   return new PrismaClient({ adapter });
 }
 
