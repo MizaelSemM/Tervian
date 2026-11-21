@@ -23,6 +23,14 @@ const envSchema = z.object({
   // URL pública do app: links de e-mail (reset/convite) e origin check do Better Auth.
   BETTER_AUTH_URL: z.url(),
 
+  // Fluxo de cadastro de novas empresas. `false` fecha /cadastro e o serviço de
+  // signup; login, reset e aceite de convite NÃO são afetados. Padrão `true`
+  // preserva o comportamento atual quem nunca configurou a variável.
+  SIGNUPS_ENABLED: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((value) => value === "true"),
+
   // E-mail transacional (Resend) — tarefas 003/009/015.
   // Sem a chave, o mailer registra o e-mail no console (dev) em vez de enviar.
   RESEND_API_KEY: z.string().optional(),

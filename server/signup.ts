@@ -6,6 +6,7 @@ import { TERMS_VERSION } from "@/lib/lgpd";
 import type { SignUpCompanyInput } from "@/lib/schemas/auth";
 import { isAlreadyExistsError } from "@/server/auth-errors";
 import { AppError } from "@/server/errors";
+import { assertSignupsOpen } from "@/server/signup-gate";
 import { createDefaultLostReasonsForAccount } from "@/server/services/lost-reasons";
 import { createDefaultMessageTemplatesForAccount } from "@/server/services/message-templates";
 import { createDefaultPipelineForAccount } from "@/server/services/pipeline";
@@ -14,6 +15,7 @@ import { createDefaultPipelineForAccount } from "@/server/services/pipeline";
  * Criação de empresa (RF-01): nova conta (tenant) + primeiro usuário ADMIN.
  *
  * Fluxo:
+ *  0. `SIGNUPS_ENABLED=false` encerra aqui (bloqueio operacional de novas contas);
  *  1. e-mail não pode existir (checagem antecipada para não criar conta em vão);
  *  2. cria o `Account`;
  *  3. cria o funil padrão (RF-20) e os motivos de perda (RF-23);
@@ -26,6 +28,10 @@ import { createDefaultPipelineForAccount } from "@/server/services/pipeline";
 export async function signUpCompany(
   input: SignUpCompanyInput,
 ): Promise<{ accountId: string; userId: string }> {
+  // Porta única do cadastro: com a flag fechada, não chega nem a consultar o
+  // e-mail (não cria conta nem usuário, mesmo chamado fora da Server Action).
+  assertSignupsOpen();
+
   const existing = await prismaBase.user.findUnique({
     where: { email: input.email },
     select: { id: true },

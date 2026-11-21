@@ -1,7 +1,7 @@
 # ✅ TODO — CRM de Follow-up para Pequenas Equipes de Vendas (MVP)
 
 **Fonte:** [PRD – CRM de Follow-up para Pequenas Equipes de Vendas (MVP)](<../PRD – CRM de Follow-up para Pequenas Equipes de Vendas (MVP).md>)
-**Atualizado em:** 19/11/2026 · **Fase atual:** 3 — Qualidade e lançamento · **Prazo recalibrado: ~6–8 semanas** (ritmo ~20–25h/semana)
+**Atualizado em:** 21/11/2026 · **Fase atual:** 3 — Qualidade e lançamento · **Prazo recalibrado: ~6–8 semanas** (ritmo ~20–25h/semana)
 
 ---
 
@@ -23,6 +23,7 @@ Better Auth (scrypt) · Supabase Postgres **São Paulo** + Vercel **gru1** · mu
 - [ ] **013 · Segurança, LGPD e observabilidade** → [013-seguranca-lgpd-observabilidade.md](013-seguranca-lgpd-observabilidade.md) — código implementado, migrations aplicadas e cadastro validado em produção; faltam credenciais de Sentry/PostHog, restore de backup e monitor de uptime (dependem do painel do dono)
 - [ ] **012 · PWA, mobile-first e UX de um clique** → [012-pwa-ux-mobile.md](012-pwa-ux-mobile.md) — base implementada; faltam medições (4G/Lighthouse) e teste em aparelho real
 - [ ] **Chore · Identidade visual “Pauta de campo”** → [chore-identidade-visual.md](chore-identidade-visual.md) — tokens, Archivo, shell, Hoje, login/cadastro e Funil; telas herdadas com ajustes pontuais; PR aberto para revisão
+- [ ] **Chore · Bloqueio de novos cadastros** → [chore-bloqueio-cadastro.md](chore-bloqueio-cadastro.md) — flag `SIGNUPS_ENABLED` (padrão `true`) fecha só a criação de empresa; login/reset/convites intactos; PR aberto para revisão
 
 > ⚠️ **Revisão de 13/11/2026:** o quadro marcava 008–011 como concluídas, mas 009 e 010 ainda tinham critérios de aceite abertos. 009 e 010 foram fechadas; 008 e 011 já estavam implementadas.
 > Migration nova da 010 (`add_public_form_settings`) precisa ser aplicada no Supabase com `npm run db:migrate`.
