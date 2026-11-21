@@ -54,7 +54,7 @@ export default async function CarteiraPage({
           >
             ← Painel
           </Link>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Carteira</h1>
+          <h1 className="mt-1 text-page-title">Carteira</h1>
           <p className="text-sm text-muted-foreground">
             Reatribua negócios entre vendedores sem perder o histórico. Você pode filtrar por
             responsável e selecionar os negócios da página.

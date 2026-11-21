@@ -260,7 +260,7 @@ export function MessageTemplatesSettings({
             </p>
           )}
           {state?.success && (
-            <p role="status" className="text-sm text-emerald-600">
+            <p role="status" className="text-sm text-success">
               {state.success}
             </p>
           )}

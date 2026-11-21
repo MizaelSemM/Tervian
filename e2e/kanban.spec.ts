@@ -23,7 +23,7 @@ test("arrastar negócio entre etapas persiste após recarregar", async ({ page, 
     .locator("section")
     .filter({ has: page.getByRole("heading", { name: "Contatado", exact: true }) });
 
-  await expect(newColumn.getByText(leadName, { exact: true })).toBeVisible();
+  await expect(newColumn.getByRole("link", { name: leadName, exact: true })).toBeVisible();
 
   const handle = page.getByRole("button", { name: `Arrastar ${leadName}` });
   await handle.scrollIntoViewIfNeeded();
@@ -45,8 +45,8 @@ test("arrastar negócio entre etapas persiste após recarregar", async ({ page, 
   });
 
   await page.reload();
-  await expect(contactedColumn.getByText(leadName, { exact: true })).toBeVisible();
-  await expect(newColumn.getByText(leadName, { exact: true })).toHaveCount(0);
+  await expect(contactedColumn.getByRole("link", { name: leadName, exact: true })).toBeVisible();
+  await expect(newColumn.getByRole("link", { name: leadName, exact: true })).toHaveCount(0);
 });
 
 test("fechar como perdido exige motivo e, com motivo, fecha o negócio", async ({

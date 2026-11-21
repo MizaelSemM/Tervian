@@ -1,3 +1,4 @@
+import { PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { headers } from "next/headers";
 
@@ -120,52 +121,62 @@ export default async function NegociosPage({
     const totalValue = board?.totalValue ?? 0;
 
     return (
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-5">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Negócios</h1>
-            <p className="text-muted-foreground">
-              Seu funil do primeiro contato ao fechamento — arraste no kanban ou use a lista.
+            <h1 className="text-page-title">Negócios</h1>
+            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+              Seu funil do primeiro contato ao fechamento. Arraste no kanban ou use a lista.
             </p>
           </div>
-          <Link href="/negocios/novo" className={buttonVariants({ size: "lg" })}>
+          <Link
+            href="/negocios/novo"
+            className={buttonVariants({ className: "h-10 w-full px-4 sm:w-auto" })}
+          >
+            <PlusIcon />
             Novo negócio
           </Link>
         </div>
 
         {(params.novo || params.salvo || params.fechado) && (
-          <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
+          <p className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground">
             {params.novo && "Negócio criado! A próxima ação já está agendada."}
             {params.salvo && "Negócio atualizado."}
-            {params.fechado === "won" && "Negócio marcado como ganho. 🎉"}
+            {params.fechado === "won" && "Negócio marcado como ganho."}
             {params.fechado === "lost" && "Negócio marcado como perdido."}
             {params.fechado && " Os dados saíram do funil e ficaram no histórico."}
           </p>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border pb-0">
           {board ? (
-            <p className="text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">{totalOpen}</span>{" "}
-              {totalOpen === 1 ? "negócio aberto" : "negócios abertos"} ·{" "}
-              <span className="font-medium text-foreground">{formatCurrencyBR(totalValue)}</span> no
-              funil
-            </p>
+            <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1 pb-3 text-sm text-muted-foreground">
+              <span>
+                <span className="font-semibold text-foreground tabular-nums">{totalOpen}</span>{" "}
+                {totalOpen === 1 ? "negócio aberto" : "negócios abertos"}
+              </span>
+              <span>
+                <span className="font-semibold text-foreground tabular-nums">
+                  {formatCurrencyBR(totalValue)}
+                </span>{" "}
+                no funil
+              </span>
+            </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
+            <p className="pb-3 text-sm text-muted-foreground">
               {list?.total ?? 0} {list?.total === 1 ? "negócio" : "negócios"}
             </p>
           )}
 
-          <div className="flex items-center gap-1 rounded-lg border border-border p-1">
+          <div className="flex items-center gap-1">
             <Link
               href={viewHref("kanban", filters)}
               aria-current={rawView === "kanban" ? "page" : undefined}
               className={cn(
-                "inline-flex h-8 items-center justify-center rounded-md px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                "inline-flex h-10 items-center justify-center border-b-2 px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 -mb-px",
                 rawView === "kanban"
-                  ? "bg-secondary text-secondary-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  ? "border-primary text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground",
               )}
             >
               Kanban
@@ -174,10 +185,10 @@ export default async function NegociosPage({
               href={viewHref("lista", filters)}
               aria-current={rawView === "lista" ? "page" : undefined}
               className={cn(
-                "inline-flex h-8 items-center justify-center rounded-md px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                "inline-flex h-10 items-center justify-center border-b-2 px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 -mb-px",
                 rawView === "lista"
-                  ? "bg-secondary text-secondary-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  ? "border-primary text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground",
               )}
             >
               Lista
@@ -186,15 +197,15 @@ export default async function NegociosPage({
         </div>
 
         {board && totalOpen === 0 && (
-          <div className="rounded-xl border border-dashed border-border px-4 py-8 text-center">
-            <p className="text-sm font-medium">Nenhum negócio aberto no funil.</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Cadastre um lead em segundos — o negócio na primeira etapa do funil e a primeira ação
-              são criados juntos.
+          <div className="rounded-xl border border-border bg-card px-6 py-10 text-center">
+            <p className="text-base font-semibold">Nenhum negócio aberto no funil.</p>
+            <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
+              Cadastre um lead em segundos. O negócio entra na primeira etapa do funil e a primeira
+              ação é criada junto.
             </p>
             <Link
               href="/contatos/novo"
-              className={buttonVariants({ variant: "outline", className: "mt-4" })}
+              className={buttonVariants({ variant: "outline", className: "mt-4 h-10" })}
             >
               Cadastrar lead
             </Link>

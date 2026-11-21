@@ -13,12 +13,11 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { CalendarClockIcon, GripVerticalIcon } from "lucide-react";
+import { CalendarClockIcon, GripVerticalIcon, UserRoundIcon } from "lucide-react";
 import Link from "next/link";
 import { useOptimistic, useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
   cn,
@@ -94,7 +93,7 @@ function moveCard(stages: BoardStage[], move: Move): BoardStage[] {
 
 const NEXT_ACTION_CLASSES: Record<NextActionTone, string> = {
   overdue: "bg-destructive/10 text-destructive",
-  today: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+  today: "bg-accent text-accent-foreground",
   soon: "bg-muted text-muted-foreground",
   none: "bg-destructive/10 text-destructive",
 };
@@ -171,7 +170,7 @@ export function DealBoard({ stages }: { stages: BoardStage[] }) {
 
       <DragOverlay dropAnimation={null}>
         {activeDeal ? (
-          <div className="w-72 rounded-lg border border-border bg-background p-3 shadow-lg">
+          <div className="w-72 rounded-lg border border-border bg-card p-3 shadow-lg">
             <DealCardContent deal={activeDeal} />
           </div>
         ) : null}
@@ -187,21 +186,39 @@ function StageColumn({ stage }: { stage: BoardStage }) {
     <section
       ref={setNodeRef}
       className={cn(
-        "flex w-72 shrink-0 flex-col rounded-xl border border-border bg-muted/30 transition-shadow",
-        isOver && "ring-2 ring-primary/50",
+        "flex w-[296px] shrink-0 flex-col rounded-xl bg-muted/60 transition-shadow",
+        isOver && "ring-2 ring-primary/40",
       )}
     >
-      <header className="flex flex-col gap-0.5 border-b border-border px-3 py-2">
-        <div className="flex items-center justify-between gap-2">
+      <header className="px-3 pt-3 pb-2.5">
+        <div className="flex items-baseline justify-between gap-2">
           <h2 className="truncate text-sm font-semibold">{stage.name}</h2>
-          <Badge variant="secondary">{stage.count}</Badge>
+          <span className="text-xs font-medium text-muted-foreground tabular-nums">
+            {stage.count}
+          </span>
         </div>
-        <p className="text-xs text-muted-foreground">{formatCurrencyBR(stage.totalValue)}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground tabular-nums">
+          {formatCurrencyBR(stage.totalValue)}
+        </p>
+        <div
+          className="mt-2.5 flex items-center gap-2"
+          title={`Probabilidade da etapa: ${stage.probability}%`}
+        >
+          <div className="h-1 flex-1 overflow-hidden rounded-full bg-foreground/10">
+            <div
+              className="h-full rounded-full bg-primary"
+              style={{ width: `${stage.probability}%` }}
+            />
+          </div>
+          <span className="text-[11px] text-muted-foreground tabular-nums">
+            {stage.probability}%
+          </span>
+        </div>
       </header>
 
-      <div className="flex flex-1 flex-col gap-2 p-2">
+      <div className="flex flex-1 flex-col gap-2 p-2 pt-0">
         {stage.deals.length === 0 ? (
-          <p className="px-2 py-6 text-center text-xs text-muted-foreground">
+          <p className="rounded-lg border border-dashed border-border px-2 py-7 text-center text-xs text-muted-foreground">
             Nenhum negócio nesta etapa.
           </p>
         ) : (
@@ -211,7 +228,11 @@ function StageColumn({ stage }: { stage: BoardStage }) {
         {stage.hasMore && (
           <Link
             href={`/negocios?view=lista&etapa=${stage.id}`}
-            className={buttonVariants({ variant: "ghost", size: "sm", className: "w-full" })}
+            className={buttonVariants({
+              variant: "ghost",
+              size: "sm",
+              className: "w-full text-muted-foreground",
+            })}
           >
             Ver todos ({stage.count})
           </Link>
@@ -228,7 +249,7 @@ function DraggableCard({ deal }: { deal: BoardDeal }) {
     <article
       ref={setNodeRef}
       className={cn(
-        "rounded-lg border border-border bg-background p-3 shadow-xs transition-opacity",
+        "rounded-lg border border-border bg-card p-3 transition-[opacity,border-color] hover:border-foreground/20",
         isDragging && "opacity-40",
       )}
     >
@@ -244,7 +265,7 @@ function DraggableCard({ deal }: { deal: BoardDeal }) {
           {...attributes}
           {...listeners}
           aria-label={`Arrastar ${deal.title}`}
-          className="touch-none rounded p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="touch-none rounded p-1 text-muted-foreground/70 transition-colors hover:bg-muted hover:text-foreground"
         >
           <GripVerticalIcon className="size-4" />
         </button>
@@ -261,11 +282,15 @@ function DealCardContent({ deal }: { deal: BoardDeal }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="truncate text-xs text-muted-foreground">
-        {deal.contact.name} · {deal.owner.name}
-      </p>
+      <div className="min-w-0">
+        <p className="truncate text-xs font-medium text-foreground/80">{deal.contact.name}</p>
+        <p className="flex items-center gap-1 truncate text-[11px] text-muted-foreground">
+          <UserRoundIcon className="size-3 shrink-0" aria-hidden />
+          {deal.owner.name}
+        </p>
+      </div>
 
-      <p className="text-sm font-semibold">{formatCurrencyBR(deal.value)}</p>
+      <p className="text-[15px] font-semibold tabular-nums">{formatCurrencyBR(deal.value)}</p>
 
       <div className="flex flex-wrap items-center gap-1.5">
         {deal.expectedCloseAt && (
@@ -291,7 +316,7 @@ function DealCardContent({ deal }: { deal: BoardDeal }) {
               idleDays >= 7
                 ? "bg-destructive/10 text-destructive"
                 : idleDays >= 3
-                  ? "bg-amber-500/15 text-amber-700 dark:text-amber-400"
+                  ? "bg-warning-soft text-warning"
                   : "bg-muted text-muted-foreground",
             )}
           >

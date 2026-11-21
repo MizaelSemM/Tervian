@@ -36,12 +36,12 @@ export default async function PublicLeadPage({
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-6 px-4 py-10">
       <div className="text-center">
         <p className="text-sm font-medium text-muted-foreground">{account.name}</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">{account.title}</h1>
+        <h1 className="mt-1 text-page-title">{account.title}</h1>
         <p className="mt-2 text-sm text-muted-foreground">{PUBLIC_FORM_DEFAULT_DESCRIPTION}</p>
       </div>
 
       {sent ? (
-        <div className="rounded-2xl border border-border bg-background p-6 text-center">
+        <div className="rounded-2xl border border-border bg-card p-6 text-center">
           <h2 className="text-2xl font-semibold">Recebemos seu contato</h2>
           <p className="mt-2 text-muted-foreground">{account.message}</p>
           {whatsapp && (
@@ -67,7 +67,7 @@ export default async function PublicLeadPage({
       )}
 
       <p className="text-center text-xs text-muted-foreground">
-        {account.name} · via{" "}
+        {account.name}, via{" "}
         <a href={publicFormPath(slug)} className="underline-offset-2 hover:underline">
           Tervian
         </a>
@@ -76,7 +76,7 @@ export default async function PublicLeadPage({
         <a href="/privacidade" className="underline-offset-2 hover:underline">
           Privacidade
         </a>{" "}
-        ·{" "}
+        e{" "}
         <a href="/termos" className="underline-offset-2 hover:underline">
           Termos
         </a>

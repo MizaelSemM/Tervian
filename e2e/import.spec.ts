@@ -30,7 +30,7 @@ test("importa 5.000 linhas e confere o relatório", async ({ page, isMobile }) =
   await expect(page.getByRole("heading", { name: "Pré-visualização" })).toBeVisible({
     timeout: 60_000,
   });
-  await expect(page.getByText("5000 linhas · 5000 válidas", { exact: false })).toBeVisible();
+  await expect(page.getByText("5000 linhas, 5000 válidas", { exact: false })).toBeVisible();
 
   await page
     .getByText("Declaro que tenho base legal para tratar estes dados, conforme a LGPD.")
@@ -41,9 +41,8 @@ test("importa 5.000 linhas e confere o relatório", async ({ page, isMobile }) =
     timeout: 300_000,
   });
   await expect(
-    page.getByText(
-      "5000 linhas processadas · 5000 importadas · 0 atualizadas · 5000 novos negócios",
-      { exact: false },
-    ),
+    page.getByText("5000 linhas processadas, 5000 importadas, 0 atualizadas, 5000 novos negócios", {
+      exact: false,
+    }),
   ).toBeVisible();
 });

@@ -5,14 +5,6 @@ import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
@@ -71,60 +63,73 @@ export function LoginForm() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Entrar</CardTitle>
-        <CardDescription>Acesse o painel da sua equipe.</CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit} noValidate>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="email">E-mail</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              placeholder="voce@empresa.com"
-              required
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Senha</Label>
-              <Link
-                href="/esqueci-senha"
-                className="text-xs text-muted-foreground underline-offset-4 hover:underline"
-              >
-                Esqueci a senha
-              </Link>
-            </div>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-            />
-          </div>
-          {error && (
-            <p role="alert" className="text-sm text-destructive">
-              {error}
-            </p>
-          )}
-        </CardContent>
-        <CardFooter className="flex flex-col gap-3">
-          <Button type="submit" className="w-full" disabled={pending}>
-            {pending ? "Entrando…" : "Entrar"}
-          </Button>
-          <p className="text-sm text-muted-foreground">
-            Ainda não tem conta?{" "}
-            <Link href="/cadastro" className="underline underline-offset-4">
-              Criar conta
+    <div>
+      <header className="mb-8">
+        <h1 className="text-[30px] leading-tight font-semibold tracking-[-0.03em]">Entrar</h1>
+        <p className="mt-1.5 text-sm text-muted-foreground">Acesse o painel da sua equipe.</p>
+      </header>
+
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="email" className="text-[13px] font-medium">
+            E-mail
+          </Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="voce@empresa.com"
+            className="h-11"
+            required
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-3">
+            <Label htmlFor="password" className="text-[13px] font-medium">
+              Senha
+            </Label>
+            <Link
+              href="/esqueci-senha"
+              className="text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
+            >
+              Esqueci a senha
             </Link>
+          </div>
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            className="h-11"
+            required
+          />
+        </div>
+
+        {error && (
+          <p
+            role="alert"
+            className="rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+          >
+            {error}
           </p>
-        </CardFooter>
+        )}
+
+        <Button type="submit" className="mt-1 h-11 w-full" disabled={pending}>
+          {pending ? "Entrando…" : "Entrar"}
+        </Button>
+
+        <p className="text-sm text-muted-foreground">
+          Ainda não tem conta?{" "}
+          <Link
+            href="/cadastro"
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Criar conta
+          </Link>
+        </p>
       </form>
-    </Card>
+    </div>
   );
 }

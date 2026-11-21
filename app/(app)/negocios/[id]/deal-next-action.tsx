@@ -99,9 +99,7 @@ export function DealNextAction({
                 nextAction.tone === "none" && "text-destructive",
               )}
             >
-              {nextActionAt
-                ? `${formatDateBR(nextActionAt)} · ${nextAction.text}`
-                : nextAction.text}
+              {nextActionAt ? `${formatDateBR(nextActionAt)}, ${nextAction.text}` : nextAction.text}
             </span>
           </div>
           <Button

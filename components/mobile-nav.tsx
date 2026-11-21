@@ -4,7 +4,7 @@ import { BarChart3Icon, CalendarCheck2Icon, KanbanSquareIcon, UsersIcon } from "
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 const ITEMS = [
   { href: "/hoje", label: "Hoje", icon: CalendarCheck2Icon },
@@ -13,8 +13,8 @@ const ITEMS = [
 ] as const;
 
 /**
- * Navegação inferior do celular (tarefa 012): alvos de 56px, ícone + rótulo e
- * alcance do polegar. No desktop o menu do cabeçalho continua igual.
+ * Navegação inferior do celular (tarefa 012): alvos de 64px, ícone + rótulo e
+ * alcance do polegar. O traço cobalto no topo marca a aba ativa.
  */
 export function MobileNav({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname();
@@ -25,7 +25,7 @@ export function MobileNav({ isAdmin }: { isAdmin: boolean }) {
   return (
     <nav
       aria-label="Navegação principal"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] md:hidden"
     >
       <ul className={cn("grid", isAdmin ? "grid-cols-4" : "grid-cols-3")}>
         {items.map((item) => {
@@ -37,11 +37,14 @@ export function MobileNav({ isAdmin }: { isAdmin: boolean }) {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors",
-                  active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                  "relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors",
+                  active ? "text-primary" : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <Icon className={cn("size-5", active && "text-primary")} aria-hidden />
+                {active && (
+                  <span aria-hidden className="absolute inset-x-5 top-0 h-0.5 bg-primary" />
+                )}
+                <Icon className="size-5" strokeWidth={active ? 2.2 : 1.8} aria-hidden />
                 {item.label}
               </Link>
             </li>

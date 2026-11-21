@@ -1,6 +1,7 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { AppNav } from "@/components/app-nav";
+import { Brand } from "@/components/brand";
 import { MobileNav } from "@/components/mobile-nav";
 import { trackEvent } from "@/lib/analytics";
 import { requireAuth } from "@/lib/session";
@@ -23,7 +24,12 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const session = await requireAuth();
   const accountId = session.user.accountId;
   const roleLabel = session.user.role === "ADMIN" ? "Administrador(a)" : "Vendedor(a)";
-  const firstName = session.user.name.trim().split(/\s+/)[0] || session.user.name;
+  const nameParts = session.user.name.trim().split(/\s+/);
+  const firstName = nameParts[0] || session.user.name;
+  const initials =
+    `${nameParts[0]?.[0] ?? ""}${nameParts.length > 1 ? (nameParts[nameParts.length - 1]?.[0] ?? "") : ""}`
+      .toUpperCase()
+      .slice(0, 2);
 
   if (accountId) {
     // Evento de abertura do app (métrica de vendedores ativos). O contexto de
@@ -40,66 +46,33 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border px-4 py-3">
-        <div className="flex items-center gap-x-5">
-          <Link href="/" className="text-lg font-semibold tracking-tight">
-            Tervian
-          </Link>
-          <nav aria-label="Navegação do app" className="hidden items-center gap-x-5 md:flex">
-            <Link
-              href="/hoje"
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Hoje
-            </Link>
-            <Link
-              href="/negocios"
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Negócios
-            </Link>
-            <Link
-              href="/contatos"
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Contatos
-            </Link>
-            {session.user.role === "ADMIN" && (
-              <Link
-                href="/painel"
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Painel
-              </Link>
-            )}
-            {session.user.role === "ADMIN" && (
-              <Link
-                href="/equipe"
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Equipe
-              </Link>
-            )}
-            {session.user.role === "ADMIN" && (
-              <Link
-                href="/configuracoes"
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Configurações
-              </Link>
-            )}
-          </nav>
-        </div>
-        <div className="flex items-center gap-3">
-          <GlobalSearch />
-          <div className="hidden text-right leading-tight sm:block">
-            <p className="text-sm font-medium">{firstName}</p>
-            <p className="text-xs text-muted-foreground">{roleLabel}</p>
+      <header className="border-b border-border bg-background px-4 sm:px-6">
+        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-6">
+            <Brand className="shrink-0" />
+            <AppNav isAdmin={session.user.role === "ADMIN"} />
           </div>
-          <SignOutButton />
+          <div className="flex items-center gap-1.5 sm:gap-2.5">
+            <GlobalSearch />
+            <div className="hidden items-center gap-2.5 sm:flex">
+              <span
+                aria-hidden
+                className="flex size-9 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground"
+              >
+                {initials}
+              </span>
+              <div className="text-right leading-tight">
+                <p className="text-sm font-medium">{firstName}</p>
+                <p className="text-xs text-muted-foreground">{roleLabel}</p>
+              </div>
+            </div>
+            <SignOutButton />
+          </div>
         </div>
       </header>
-      <main className="flex flex-1 flex-col p-4 pb-24 sm:p-6 md:pb-6">{children}</main>
+      <main className="flex flex-1 flex-col px-4 py-6 pb-24 sm:px-6 sm:py-8 md:pb-8">
+        {children}
+      </main>
       <MobileNav isAdmin={session.user.role === "ADMIN"} />
     </div>
   );

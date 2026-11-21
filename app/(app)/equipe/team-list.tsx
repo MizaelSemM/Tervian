@@ -21,7 +21,7 @@ export function TeamList({ members }: { members: TeamMember[] }) {
   return (
     <section className="flex flex-col gap-3">
       <h2 className="text-sm font-medium text-muted-foreground">Pessoas com acesso</h2>
-      <ul className="divide-y divide-border overflow-hidden rounded-xl ring-1 ring-foreground/10">
+      <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
         {members.map((member) => (
           <li key={member.id} className="flex items-center justify-between gap-4 px-4 py-3">
             <div className="min-w-0">

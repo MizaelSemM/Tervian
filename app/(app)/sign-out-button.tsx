@@ -13,9 +13,10 @@ export function SignOutButton() {
 
   return (
     <Button
-      variant="outline"
+      variant="ghost"
       size="sm"
       disabled={pending}
+      className="h-10 px-2.5 text-muted-foreground hover:text-foreground sm:px-3"
       onClick={async () => {
         setPending(true);
         await authClient.signOut();

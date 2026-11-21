@@ -31,7 +31,7 @@ export function PublicLeadForm({
 
   if (state?.success) {
     return (
-      <div className="rounded-2xl border border-border bg-background p-6 text-center">
+      <div className="rounded-2xl border border-border bg-card p-6 text-center">
         <h2 className="text-2xl font-semibold">Recebemos seu contato</h2>
         <p className="mt-2 text-muted-foreground">{thankYouMessage}</p>
         {whatsappUrl && (
@@ -69,7 +69,7 @@ export function PublicLeadForm({
           name="name"
           required
           autoComplete="name"
-          className="h-12 rounded-xl border border-input bg-transparent px-4 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+          className="h-12 rounded-xl border border-input bg-card px-4 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
         />
       </label>
 
@@ -81,7 +81,7 @@ export function PublicLeadForm({
           type="tel"
           inputMode="tel"
           autoComplete="tel"
-          className="h-12 rounded-xl border border-input bg-transparent px-4 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+          className="h-12 rounded-xl border border-input bg-card px-4 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
         />
       </label>
 
@@ -91,7 +91,7 @@ export function PublicLeadForm({
           name="email"
           type="email"
           autoComplete="email"
-          className="h-12 rounded-xl border border-input bg-transparent px-4 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+          className="h-12 rounded-xl border border-input bg-card px-4 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
         />
       </label>
 

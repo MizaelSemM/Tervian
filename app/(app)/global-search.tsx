@@ -1,5 +1,6 @@
 "use client";
 
+import { SearchIcon, XIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 
@@ -57,17 +58,28 @@ export function GlobalSearch() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="hidden rounded-lg border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
+        aria-label="Buscar contatos"
+        className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-border bg-card px-2.5 text-sm text-muted-foreground transition-colors hover:border-foreground/25 hover:text-foreground sm:justify-start sm:px-3"
       >
-        Buscar <span className="ml-2 text-xs">Ctrl+K</span>
+        <SearchIcon className="size-4" aria-hidden />
+        <span className="hidden sm:inline">Buscar</span>
+        <kbd className="hidden rounded border border-border bg-muted px-1.5 py-0.5 font-sans text-[10px] font-medium tracking-wide text-muted-foreground lg:inline">
+          Ctrl K
+        </kbd>
       </button>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-4 pt-24">
-      <div className="w-full max-w-2xl rounded-xl border border-border bg-background shadow-lg">
-        <div className="border-b border-border p-3">
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-foreground/25 p-4 pt-[10vh] backdrop-blur-[2px]">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Buscar contatos"
+        className="w-full max-w-2xl overflow-hidden rounded-xl border border-border bg-card shadow-2xl"
+      >
+        <div className="flex items-center gap-3 border-b border-border px-4">
+          <SearchIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
           <input
             ref={inputRef}
             value={query}
@@ -76,18 +88,27 @@ export function GlobalSearch() {
               setQuery(value);
               if (value.trim().length < 2) setResults([]);
             }}
-            placeholder="Buscar contato ou telefone..."
-            className="w-full bg-transparent text-sm outline-none"
+            placeholder="Buscar contato ou telefone"
+            className="h-14 w-full bg-transparent text-base outline-none placeholder:text-muted-foreground"
           />
+          <button
+            type="button"
+            onClick={close}
+            aria-label="Fechar busca"
+            className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <XIcon className="size-4" aria-hidden />
+          </button>
         </div>
+
         <div className="max-h-[60vh] overflow-y-auto p-2">
-          {pending && <p className="px-2 py-3 text-sm text-muted-foreground">Buscando...</p>}
+          {pending && <p className="px-3 py-3 text-sm text-muted-foreground">Buscando…</p>}
           {!pending && query.trim().length >= 2 && results.length === 0 && (
-            <p className="px-2 py-3 text-sm text-muted-foreground">Nenhum contato encontrado.</p>
+            <p className="px-3 py-3 text-sm text-muted-foreground">Nenhum contato encontrado.</p>
           )}
-          <ul className="flex flex-col gap-1">
+          <ul className="flex flex-col gap-0.5">
             {results.map((result) => (
-              <li key={result.contact.id} className="rounded-lg p-2 hover:bg-muted/60">
+              <li key={result.contact.id} className="rounded-lg p-3 hover:bg-muted/60">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="min-w-0">
                     <Link
@@ -97,37 +118,43 @@ export function GlobalSearch() {
                     >
                       {result.contact.name}
                     </Link>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">
                       {result.contact.phone}
-                      {result.contact.companyText ? ` · ${result.contact.companyText}` : ""}
-                      {result.contact.ownerName ? ` · ${result.contact.ownerName}` : ""}
                     </p>
+                    {(result.contact.companyText || result.contact.ownerName) && (
+                      <p className="mt-0.5 flex flex-wrap gap-x-2 text-xs text-muted-foreground">
+                        {result.contact.companyText && <span>{result.contact.companyText}</span>}
+                        {result.contact.ownerName && <span>{result.contact.ownerName}</span>}
+                      </p>
+                    )}
                   </div>
                   {result.whatsappUrl && (
                     <a
                       href={result.whatsappUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-xs text-primary hover:underline"
+                      className="text-xs font-medium text-primary hover:underline"
                     >
                       WhatsApp
                     </a>
                   )}
                 </div>
                 {result.deals.length > 0 && (
-                  <ul className="mt-2 flex flex-col gap-1 pl-2">
+                  <ul className="mt-2 flex flex-col gap-1 border-l border-border pl-3">
                     {result.deals.map((deal: SearchResult["deals"][number]) => (
                       <li key={deal.id} className="text-xs text-muted-foreground">
                         <Link
                           href={`/negocios/${deal.id}`}
                           onClick={close}
-                          className="hover:underline"
+                          className="font-medium text-foreground hover:underline"
                         >
                           {deal.title}
                         </Link>
-                        {deal.nextActionAt
-                          ? ` · próxima ação ${deal.nextActionAt.toLocaleDateString("pt-BR")}`
-                          : ""}
+                        {deal.nextActionAt && (
+                          <span className="ml-2">
+                            próxima ação em {deal.nextActionAt.toLocaleDateString("pt-BR")}
+                          </span>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -136,18 +163,18 @@ export function GlobalSearch() {
             ))}
           </ul>
           {query.trim().length >= 2 && (
-            <div className="border-t border-border px-2 py-2">
+            <div className="mt-1 border-t border-border px-3 py-2.5">
               <Link
                 href={`/contatos/novo`}
                 onClick={close}
-                className="text-sm text-primary hover:underline"
+                className="text-sm font-medium text-primary hover:underline"
               >
                 Criar lead “{query.trim()}”
               </Link>
             </div>
           )}
         </div>
-        <div className="border-t border-border px-3 py-2 text-xs text-muted-foreground">
+        <div className="border-t border-border px-4 py-2 text-xs text-muted-foreground">
           Pressione Esc para fechar.
         </div>
       </div>

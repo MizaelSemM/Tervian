@@ -59,7 +59,7 @@ export function DealClose({
         {mode === "WON" && (
           <form
             action={wonAction}
-            className="flex flex-col gap-3 rounded-lg border border-emerald-600/30 bg-emerald-500/5 p-3"
+            className="flex flex-col gap-3 rounded-lg border border-success/25 bg-success-soft p-3"
           >
             <input type="hidden" name="id" value={dealId} />
             <input type="hidden" name="status" value="WON" />

@@ -7,9 +7,16 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-archivo);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-archivo);
+  --color-primary-hover: var(--primary-hover);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-soft: var(--warning-soft);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -48,73 +55,92 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/*
+ * Pauta de campo (chore/identidade-visual)
+ * Papel frio, tinta, cobalto de ação. Vermelho só para atraso/perda;
+ * verde só para concluído. Ver .notes/chore-identidade-visual.md.
+ */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --background: #f4f5f0;
+  --foreground: #191d1b;
+  --card: #ffffff;
+  --card-foreground: #191d1b;
+  --popover: #ffffff;
+  --popover-foreground: #191d1b;
+  --primary: #2447d8;
+  --primary-foreground: #ffffff;
+  --primary-hover: #1b36b0;
+  --secondary: #e7eaf5;
+  --secondary-foreground: #1b2b6b;
+  --muted: #eaece5;
+  --muted-foreground: #5f665f;
+  --accent: #e9edfb;
+  --accent-foreground: #1b36b0;
+  --destructive: #c43d2e;
+  --success: #167a5b;
+  --success-foreground: #ffffff;
+  --success-soft: #e3f1ea;
+  --warning: #9a5b00;
+  --warning-foreground: #ffffff;
+  --warning-soft: #fbf0d9;
+  --border: #d9dcd4;
+  --input: #c9cec5;
+  --ring: #2447d8;
+  --chart-1: #2447d8;
+  --chart-2: #6c83e4;
+  --chart-3: #b7791f;
+  --chart-4: #c43d2e;
+  --chart-5: #6b7280;
+  --radius: 0.5rem;
+  --sidebar: #f4f5f0;
+  --sidebar-foreground: #191d1b;
+  --sidebar-primary: #2447d8;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eaece5;
+  --sidebar-accent-foreground: #191d1b;
+  --sidebar-border: #d9dcd4;
+  --sidebar-ring: #2447d8;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #101412;
+  --foreground: #f1f3ee;
+  --card: #171c19;
+  --card-foreground: #f1f3ee;
+  --popover: #171c19;
+  --popover-foreground: #f1f3ee;
+  --primary: #8fa6ff;
+  --primary-foreground: #10172e;
+  --primary-hover: #b3c2ff;
+  --secondary: #232a26;
+  --secondary-foreground: #e7ebe5;
+  --muted: #222824;
+  --muted-foreground: #a6aea6;
+  --accent: #1e2a4a;
+  --accent-foreground: #c7d3ff;
+  --destructive: #ff8c7d;
+  --success: #63c9a8;
+  --success-foreground: #071b15;
+  --success-soft: #163027;
+  --warning: #e9b45c;
+  --warning-foreground: #2b1c05;
+  --warning-soft: #332713;
+  --border: #2b322d;
+  --input: #353d37;
+  --ring: #8fa6ff;
+  --chart-1: #8fa6ff;
+  --chart-2: #a9baff;
+  --chart-3: #e9b45c;
+  --chart-4: #ff8c7d;
+  --chart-5: #a6aea6;
+  --sidebar: #171c19;
+  --sidebar-foreground: #f1f3ee;
+  --sidebar-primary: #8fa6ff;
+  --sidebar-primary-foreground: #10172e;
+  --sidebar-accent: #222824;
+  --sidebar-accent-foreground: #f1f3ee;
+  --sidebar-border: #2b322d;
+  --sidebar-ring: #8fa6ff;
 }
 
 @layer base {
@@ -123,8 +149,35 @@
   }
   body {
     @apply bg-background text-foreground;
+    text-rendering: optimizeLegibility;
   }
   html {
     @apply font-sans;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 22%, transparent);
+  }
+}
+
+@layer utilities {
+  /* Palavra-marca e títulos de primeira impressão: Archivo mais larga. */
+  .font-brand {
+    font-family: var(--font-archivo);
+    font-stretch: 112%;
+    letter-spacing: -0.035em;
+  }
+
+  /* Título de página: mesma escala em todas as telas. */
+  .text-page-title {
+    font-size: 1.75rem;
+    line-height: 1.15;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+  }
+
+  @media (min-width: 640px) {
+    .text-page-title {
+      font-size: 2rem;
+    }
   }
 }
