@@ -22,13 +22,13 @@ export function PendingInvites({ invites }: { invites: PendingInvite[] }) {
       {invites.length === 0 ? (
         <p className="text-sm text-muted-foreground">Nenhum convite aguardando resposta.</p>
       ) : (
-        <ul className="divide-y divide-border overflow-hidden rounded-xl ring-1 ring-foreground/10">
+        <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
           {invites.map((invite) => (
             <li key={invite.id} className="flex items-center justify-between gap-4 px-4 py-3">
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium">{invite.email}</p>
                 <p className="text-xs text-muted-foreground">
-                  {invite.role === "ADMIN" ? "Admin" : "Vendedor"} · expira em{" "}
+                  {invite.role === "ADMIN" ? "Admin" : "Vendedor"}, expira em{" "}
                   {invite.expiresInDays === 1 ? "1 dia" : `${invite.expiresInDays} dias`}
                 </p>
               </div>

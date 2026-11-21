@@ -1,3 +1,4 @@
+import { PlusIcon } from "lucide-react";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
@@ -61,18 +62,19 @@ export default async function ContactsPage({
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Contatos</h1>
+            <h1 className="text-page-title">Contatos</h1>
             <p className="text-muted-foreground">
               Quem você atende, com WhatsApp e telefone a um toque.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Link href="/contatos/novo" className={buttonVariants({ size: "lg" })}>
+            <Link href="/contatos/novo" className={buttonVariants({ className: "h-10 px-4" })}>
+              <PlusIcon />
               Novo contato
             </Link>
             <Link
               href="/contatos/importar"
-              className={buttonVariants({ variant: "outline", size: "lg" })}
+              className={buttonVariants({ variant: "outline", className: "h-10 px-4" })}
             >
               Importar CSV
             </Link>
@@ -80,33 +82,36 @@ export default async function ContactsPage({
         </div>
 
         {novo && (
-          <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
+          <p className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground">
             Lead criado! O negócio já está na primeira etapa do funil e o primeiro contato ficou
             para hoje.
           </p>
         )}
         {salvo && (
-          <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
+          <p className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground">
             Contato atualizado.
           </p>
         )}
         {excluido && (
-          <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
+          <p className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground">
             Contato excluído. O histórico de negócios fechados foi preservado.
           </p>
         )}
 
-        <form action="/contatos" method="get" className="flex flex-col gap-2 sm:flex-row">
+        <form action="/contatos" method="get" className="flex items-center gap-2">
           <Input
             type="search"
             name="q"
             defaultValue={q}
             placeholder="Buscar por nome ou telefone"
             aria-label="Buscar contatos por nome ou telefone"
-            className="sm:flex-1"
+            className="h-10 min-w-0 flex-1"
           />
-          <div className="flex items-center gap-2">
-            <button type="submit" className={buttonVariants({ variant: "outline" })}>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="submit"
+              className={buttonVariants({ variant: "outline", className: "h-10" })}
+            >
               Buscar
             </button>
             {q && (
@@ -132,7 +137,7 @@ export default async function ContactsPage({
           </div>
 
           {result.items.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border px-4 py-10 text-center">
+            <div className="rounded-xl border border-border bg-card px-4 py-10 text-center">
               <p className="text-sm font-medium">
                 {q ? "Nenhum contato encontrado." : "Nenhum contato ainda."}
               </p>
@@ -151,7 +156,7 @@ export default async function ContactsPage({
               )}
             </div>
           ) : (
-            <ul className="divide-y divide-border overflow-hidden rounded-xl ring-1 ring-foreground/10">
+            <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
               {result.items.map((contact) => {
                 const whatsapp = whatsappLinkBR(contact.phone);
                 const originLabel = contact.origin
@@ -173,12 +178,14 @@ export default async function ContactsPage({
                         </Link>
                         {originLabel && <Badge variant="outline">{originLabel}</Badge>}
                       </div>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {formatPhoneBR(contact.phone)}
-                        {contact.companyText ? ` · ${contact.companyText}` : ""}
-                        {contact.owner ? ` · ${contact.owner.name}` : ""}
-                        {` · ${contact.dealsCount} ${contact.dealsCount === 1 ? "negócio" : "negócios"}`}
-                      </p>
+                      <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                        <span className="tabular-nums">{formatPhoneBR(contact.phone)}</span>
+                        {contact.companyText && <span>{contact.companyText}</span>}
+                        {contact.owner && <span>{contact.owner.name}</span>}
+                        <span>
+                          {contact.dealsCount} {contact.dealsCount === 1 ? "negócio" : "negócios"}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="flex shrink-0 flex-wrap items-center gap-2">
@@ -187,20 +194,32 @@ export default async function ContactsPage({
                           href={whatsapp}
                           target="_blank"
                           rel="noreferrer"
-                          className={buttonVariants({ variant: "secondary", size: "sm" })}
+                          className={buttonVariants({
+                            variant: "secondary",
+                            size: "sm",
+                            className: "h-9",
+                          })}
                         >
                           WhatsApp
                         </a>
                       )}
                       <a
                         href={`tel:${contact.phone}`}
-                        className={buttonVariants({ variant: "outline", size: "sm" })}
+                        className={buttonVariants({
+                          variant: "outline",
+                          size: "sm",
+                          className: "h-9",
+                        })}
                       >
                         Ligar
                       </a>
                       <Link
                         href={`/contatos/${contact.id}`}
-                        className={buttonVariants({ variant: "ghost", size: "sm" })}
+                        className={buttonVariants({
+                          variant: "ghost",
+                          size: "sm",
+                          className: "h-9",
+                        })}
                       >
                         Abrir
                       </Link>

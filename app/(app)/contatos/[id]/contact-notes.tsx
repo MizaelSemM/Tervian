@@ -114,7 +114,7 @@ export function ContactNotesCard({ notes, contactId }: { notes: Note[]; contactI
                     <p className="text-sm whitespace-pre-wrap">{note.text}</p>
                     <div className="mt-1 flex items-center justify-between gap-2">
                       <p className="text-xs text-muted-foreground">
-                        {formatDateTimeBR(note.createdAt)} · {note.authorName}
+                        {formatDateTimeBR(note.createdAt)}, {note.authorName}
                       </p>
                       <div className="flex gap-3">
                         <button

@@ -55,7 +55,7 @@ export function QuickLeadForm({
           {state?.duplicate && (
             <div
               role="alert"
-              className="flex flex-col gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-3 text-sm"
+              className="flex flex-col gap-2 rounded-lg border border-warning/30 bg-warning-soft px-3 py-3 text-sm"
             >
               <p className="font-medium">
                 {state.duplicate.deleted
@@ -63,7 +63,7 @@ export function QuickLeadForm({
                   : "Este telefone já está cadastrado."}
               </p>
               <p className="text-muted-foreground">
-                {state.duplicate.name} · {formatPhoneBR(state.duplicate.phone)}
+                {state.duplicate.name}, {formatPhoneBR(state.duplicate.phone)}
               </p>
               {!state.duplicate.deleted && (
                 <Link

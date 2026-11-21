@@ -3,18 +3,17 @@
 import {
   CalendarClockIcon,
   CheckIcon,
+  CircleCheckIcon,
   MessageCircleIcon,
   PhoneIcon,
-  SparklesIcon,
+  UserRoundIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useOptimistic, useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MessageComposer } from "@/components/message-composer";
@@ -40,7 +39,7 @@ type CompleteInput = {
 };
 
 const selectClassName =
-  "h-11 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30";
+  "h-11 w-full rounded-lg border border-input bg-card px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30";
 
 /**
  * Tela "Hoje" (007): lista curta, botões grandes e conclusão em dois toques.
@@ -137,53 +136,46 @@ export function TodayView({
   const empty = state.counts.overdue === 0 && state.counts.today === 0;
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-5 pb-4">
-      <header className="flex flex-col gap-4">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-7 pb-4">
+      <header className="flex flex-col gap-6">
         <div>
-          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-            {state.todayLabel}
-          </p>
-          <h1 className="text-2xl font-semibold tracking-tight">Olá, {firstName}</h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-[13px] font-medium text-muted-foreground">{state.todayLabel}</p>
+          <h1 className="text-page-title mt-1">Olá, {firstName}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             Estas são as conversas que pedem ação hoje.
           </p>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
-          <Counter label="Atrasadas" value={state.counts.overdue} tone="overdue" />
-          <Counter label="Hoje" value={state.counts.today} tone="today" />
-          <Counter label="Concluídas hoje" value={state.counts.completedToday} tone="done" />
-        </div>
+        <Summary counts={state.counts} />
 
         {isAdmin && <SellerFilter data={data} />}
       </header>
 
       {state.counts.overdue === 0 && !empty && (
-        <p className="rounded-xl border border-dashed border-emerald-600/30 bg-emerald-500/5 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">
-          Nada atrasado 🎉 O dia começa limpo.
+        <p className="flex items-center gap-2 rounded-lg border border-success/20 bg-success-soft px-3 py-2 text-sm text-success">
+          <CircleCheckIcon className="size-4 shrink-0" aria-hidden />
+          Nada atrasado. O dia começa limpo.
         </p>
       )}
 
       {empty ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-2 py-10 text-center">
-            <SparklesIcon className="size-8 text-emerald-600" />
-            <p className="font-medium">Tudo em dia por aqui 🎉</p>
-            <p className="max-w-sm text-sm text-muted-foreground">
-              {state.counts.completedToday > 0
-                ? `Você concluiu ${state.counts.completedToday} ${
-                    state.counts.completedToday === 1 ? "tarefa" : "tarefas"
-                  } hoje. As próximas ações aparecem aqui na data marcada.`
-                : "Nenhuma tarefa vencida ou marcada para hoje. As próximas ações aparecem aqui na data marcada."}
-            </p>
-            <Link
-              href="/negocios"
-              className={buttonVariants({ variant: "outline", className: "mt-2 h-11" })}
-            >
-              Ver negócios
-            </Link>
-          </CardContent>
-        </Card>
+        <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
+          <CalendarClockIcon className="size-6 text-primary" aria-hidden />
+          <h2 className="mt-3 text-lg font-semibold tracking-[-0.01em]">Nada na pauta de hoje.</h2>
+          <p className="mt-1 max-w-md text-sm leading-relaxed text-muted-foreground">
+            {state.counts.completedToday > 0
+              ? `Você concluiu ${state.counts.completedToday} ${
+                  state.counts.completedToday === 1 ? "tarefa" : "tarefas"
+                } hoje. As próximas ações aparecem aqui na data marcada.`
+              : "Nenhuma tarefa vencida ou marcada para hoje. As próximas ações aparecem aqui na data marcada."}
+          </p>
+          <Link
+            href="/negocios"
+            className={buttonVariants({ variant: "outline", className: "mt-4 h-11" })}
+          >
+            Ver negócios
+          </Link>
+        </div>
       ) : (
         <>
           {state.overdue.length > 0 && (
@@ -231,20 +223,36 @@ export function TodayView({
   );
 }
 
-function Counter({ label, value, tone }: { label: string; value: number; tone: Tone | "done" }) {
+function Summary({ counts }: { counts: TodayData["counts"] }) {
+  const items = [
+    { label: "Atrasadas", value: counts.overdue, tone: "overdue" },
+    { label: "Hoje", value: counts.today, tone: "today" },
+    { label: "Concluídas hoje", value: counts.completedToday, tone: "done" },
+  ] as const;
+
   return (
-    <div className="rounded-xl border border-border bg-card px-3 py-2">
-      <p className="text-[11px] leading-tight text-muted-foreground">{label}</p>
-      <p
-        className={cn(
-          "text-2xl font-semibold tabular-nums",
-          tone === "overdue" && value > 0 && "text-destructive",
-          tone === "done" && "text-emerald-600 dark:text-emerald-400",
-        )}
-      >
-        {value}
-      </p>
-    </div>
+    <dl className="grid grid-cols-3 overflow-hidden rounded-xl border border-border bg-card">
+      {items.map((item, index) => (
+        <div
+          key={item.label}
+          className={cn("px-3 py-3 sm:px-4", index > 0 && "border-l border-border")}
+        >
+          <dt className="text-[11px] leading-tight font-medium text-muted-foreground">
+            {item.label}
+          </dt>
+          <dd
+            className={cn(
+              "mt-1 text-[26px] leading-none font-semibold tracking-[-0.03em] tabular-nums",
+              item.tone === "overdue" && item.value > 0 && "text-destructive",
+              item.tone === "today" && item.value > 0 && "text-primary",
+              item.tone === "done" && item.value > 0 && "text-success",
+            )}
+          >
+            {item.value}
+          </dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
@@ -253,13 +261,13 @@ function SellerFilter({ data }: { data: TodayData }) {
   const [isPending, startTransition] = useTransition();
 
   return (
-    <div className="flex items-center gap-2">
-      <Label htmlFor="vendedor" className="shrink-0 text-xs text-muted-foreground">
+    <div className="flex flex-wrap items-center gap-2">
+      <Label htmlFor="vendedor" className="shrink-0 text-xs font-medium text-muted-foreground">
         Ver tarefas de
       </Label>
       <select
         id="vendedor"
-        className={selectClassName}
+        className="h-9 w-auto min-w-44 max-w-full rounded-lg border border-input bg-card px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
         value={data.ownerFilter ?? ""}
         disabled={isPending}
         onChange={(event) => {
@@ -310,16 +318,25 @@ function TaskSection({
   onComplete: (task: TodayTask, input: CompleteInput) => void;
 }) {
   return (
-    <section className="flex flex-col gap-2">
-      <div>
-        <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
-          <Badge variant={tone === "overdue" ? "destructive" : "secondary"}>{tasks.length}</Badge>
+    <section className="flex flex-col gap-3">
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <h2 className="text-[17px] font-semibold tracking-[-0.01em]">{title}</h2>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">{description}</p>
         </div>
-        <p className="text-xs text-muted-foreground">{description}</p>
+        <span
+          className={cn(
+            "inline-flex h-6 min-w-6 items-center justify-center rounded-md px-1.5 text-xs font-semibold tabular-nums",
+            tone === "overdue"
+              ? "bg-destructive/10 text-destructive"
+              : "bg-accent text-accent-foreground",
+          )}
+        >
+          {tasks.length}
+        </span>
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
         {tasks.map((task) => (
           <TaskCard
             key={task.id}
@@ -371,49 +388,58 @@ function TaskCard({
   return (
     <article
       className={cn(
-        "overflow-hidden rounded-xl border border-border bg-card",
-        tone === "overdue" && "border-destructive/30",
+        "bg-card",
+        tone === "overdue" ? "border-l-[3px] border-destructive" : "border-l-[3px] border-primary",
       )}
     >
-      <div className="flex items-start justify-between gap-3 p-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href={`/negocios/${task.dealId}`}
-              className="truncate font-semibold hover:underline"
-            >
-              {task.contactName}
-            </Link>
-            <Badge variant={tone === "overdue" ? "destructive" : "secondary"}>
-              {tone === "overdue"
-                ? `Atrasada há ${task.overdueDays} ${task.overdueDays === 1 ? "dia" : "dias"}`
-                : `Hoje, ${task.dueTimeLabel}`}
-            </Badge>
-          </div>
-          <p className="truncate text-sm text-muted-foreground">
-            {task.dealTitle} · {task.stageName}
-          </p>
-          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
-            <span>{formatPhoneBR(task.contactPhone)}</span>
-            <span aria-hidden>·</span>
-            <span>{task.title}</span>
-            {task.dealValue !== null && (
-              <>
-                <span aria-hidden>·</span>
-                <span>{formatCurrencyBR(task.dealValue)}</span>
-              </>
+      <div className="p-4 sm:px-5">
+        <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1.5">
+          <Link
+            href={`/negocios/${task.dealId}`}
+            className="truncate text-[16px] leading-snug font-semibold tracking-[-0.01em] hover:underline"
+          >
+            {task.contactName}
+          </Link>
+          <span
+            className={cn(
+              "inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold",
+              tone === "overdue"
+                ? "bg-destructive/10 text-destructive"
+                : "bg-accent text-accent-foreground",
             )}
-            {isAdmin && (
-              <>
-                <span aria-hidden>·</span>
-                <span>{task.ownerName}</span>
-              </>
-            )}
-          </p>
+          >
+            {tone === "overdue"
+              ? `Atrasada há ${task.overdueDays} ${task.overdueDays === 1 ? "dia" : "dias"}`
+              : `Hoje, ${task.dueTimeLabel}`}
+          </span>
+        </div>
+
+        <p className="mt-1 truncate text-sm text-muted-foreground">{task.dealTitle}</p>
+
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-1 tabular-nums">
+            <PhoneIcon className="size-3" aria-hidden />
+            {formatPhoneBR(task.contactPhone)}
+          </span>
+          <span>{task.title}</span>
+          <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium">
+            {task.stageName}
+          </span>
+          {task.dealValue !== null && (
+            <span className="font-semibold text-foreground tabular-nums">
+              {formatCurrencyBR(task.dealValue)}
+            </span>
+          )}
+          {isAdmin && (
+            <span className="inline-flex items-center gap-1">
+              <UserRoundIcon className="size-3" aria-hidden />
+              {task.ownerName}
+            </span>
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 border-t border-border p-2">
+      <div className="grid grid-cols-2 gap-2 border-t border-border bg-muted/30 p-3 sm:flex sm:items-center">
         {whatsapp ? (
           <a
             href={whatsapp}
@@ -437,7 +463,7 @@ function TaskCard({
           <PhoneIcon />
           Ligar
         </a>
-        <div className="col-span-2">
+        <div className="col-span-2 sm:col-span-1 sm:w-44">
           <MessageComposer
             templates={messageTemplates}
             contactName={task.contactName}
@@ -450,7 +476,7 @@ function TaskCard({
           />
         </div>
         <Button
-          className="col-span-2 h-11"
+          className="col-span-2 h-11 sm:ml-auto sm:w-32"
           variant={expanded ? "secondary" : "default"}
           onClick={onToggle}
           disabled={pending}
@@ -507,7 +533,7 @@ function CompletionPanel({
   }
 
   return (
-    <div className="flex flex-col gap-3 border-t border-border bg-muted/30 p-3">
+    <div className="flex flex-col gap-3 border-t border-border bg-muted/40 p-4 sm:p-5">
       <div className="flex flex-col gap-2">
         <p className="text-xs font-medium text-muted-foreground">Resultado do contato</p>
         <div className="flex flex-wrap gap-2">
@@ -536,8 +562,8 @@ function CompletionPanel({
       </div>
 
       {result === "WON" && (
-        <div className="flex flex-col gap-2 rounded-lg border border-emerald-600/30 bg-emerald-500/5 p-3">
-          <p className="text-sm font-medium">Fechar como ganho</p>
+        <div className="flex flex-col gap-2 rounded-lg border border-success/25 bg-success-soft p-3">
+          <p className="text-sm font-semibold text-success">Fechar como ganho</p>
           <div className="flex flex-col gap-1">
             <Label htmlFor={`won-value-${task.id}`}>Valor final (R$)</Label>
             <Input
@@ -615,8 +641,8 @@ function CompletionPanel({
       )}
 
       {result && !isClosed && (
-        <div className="flex flex-col gap-2 rounded-lg border border-border bg-background p-3">
-          <p className="text-sm font-medium">Quando retomar?</p>
+        <div className="flex flex-col gap-2 rounded-lg border border-border bg-card p-3">
+          <p className="text-sm font-semibold">Quando retomar?</p>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             {shortcuts.map((shortcut) => (
               <Button

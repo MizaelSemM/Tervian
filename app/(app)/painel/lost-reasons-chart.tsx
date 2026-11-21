@@ -56,7 +56,7 @@ export function LostReasonsChart({ reasons }: { reasons: LostReasonChartDatum[] 
             cursor={{ fill: "var(--muted)", opacity: 0.5 }}
             contentStyle={tooltipStyle}
             formatter={(value, _name, item) => [
-              `${Number(value)} ${Number(value) === 1 ? "negócio" : "negócios"} · ${formatCurrencyBR(
+              `${Number(value)} ${Number(value) === 1 ? "negócio" : "negócios"}, ${formatCurrencyBR(
                 item?.payload?.totalValue ?? 0,
               )}`,
               "Perdidos",

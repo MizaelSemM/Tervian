@@ -17,11 +17,11 @@ import type { DealListItem } from "@/server/services/deals";
 import type { StageRef } from "@/server/services/pipeline";
 
 const selectClassName =
-  "h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30";
+  "h-9 w-full rounded-lg border border-input bg-card px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30";
 
 const NEXT_ACTION_CLASSES: Record<NextActionTone, string> = {
   overdue: "text-destructive",
-  today: "text-amber-700 dark:text-amber-400",
+  today: "text-primary",
   soon: "text-muted-foreground",
   none: "text-destructive",
 };
@@ -67,14 +67,14 @@ export function DealList({
     <section className="flex flex-col gap-4">
       <form action="/negocios" method="get" className="flex flex-col gap-2">
         <input type="hidden" name="view" value="lista" />
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="flex flex-wrap items-center gap-2">
           <Input
             type="search"
             name="q"
             defaultValue={filters.query}
-            placeholder="Buscar por negócio, contato ou telefone"
+            placeholder="Buscar negócio ou contato"
             aria-label="Buscar negócios"
-            className="sm:flex-1"
+            className="min-w-0 flex-1 basis-40"
           />
           <button type="submit" className={buttonVariants({ variant: "outline" })}>
             Buscar
@@ -145,14 +145,14 @@ export function DealList({
       </div>
 
       {items.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border px-4 py-10 text-center">
+        <div className="rounded-xl border border-border bg-card px-4 py-10 text-center">
           <p className="text-sm font-medium">Nenhum negócio encontrado.</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Ajuste os filtros ou cadastre um novo negócio a partir de um contato.
           </p>
         </div>
       ) : (
-        <ul className="divide-y divide-border overflow-hidden rounded-xl ring-1 ring-foreground/10">
+        <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
           {items.map((deal) => {
             const whatsapp = whatsappLinkBR(deal.contact.phone);
             const nextAction = nextActionLabelBR(deal.nextActionAt);
@@ -175,25 +175,26 @@ export function DealList({
                       {DEAL_STATUS_LABELS[deal.status]}
                     </Badge>
                   </div>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {deal.stageName} · {formatCurrencyBR(deal.value)} ·{" "}
+                  <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                    <span>{deal.stageName}</span>
+                    <span className="font-medium text-foreground tabular-nums">
+                      {formatCurrencyBR(deal.value)}
+                    </span>
                     <Link href={`/contatos/${deal.contact.id}`} className="hover:underline">
                       {deal.contact.name}
-                    </Link>{" "}
-                    · {deal.owner.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatPhoneBR(deal.contact.phone)}
+                    </Link>
+                    <span>{deal.owner.name}</span>
+                  </div>
+                  <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                    <span className="tabular-nums">{formatPhoneBR(deal.contact.phone)}</span>
                     {deal.status === "OPEN" ? (
                       <>
-                        {" · "}
                         <span className={NEXT_ACTION_CLASSES[nextAction.tone]}>
                           Próxima ação: {nextAction.text}
                         </span>
                         {idleDays !== null && (
                           <span
                             className={cn(
-                              " · ",
                               idleDays >= 7 ? "text-destructive" : "text-muted-foreground",
                             )}
                           >
@@ -203,12 +204,11 @@ export function DealList({
                       </>
                     ) : (
                       <>
-                        {" · Fechado em "}
-                        {formatDateBR(deal.closedAt)}
-                        {deal.lostReasonName ? ` · ${deal.lostReasonName}` : ""}
+                        <span>Fechado em {formatDateBR(deal.closedAt)}</span>
+                        {deal.lostReasonName && <span>{deal.lostReasonName}</span>}
                       </>
                     )}
-                  </p>
+                  </div>
                 </div>
 
                 <div className="flex shrink-0 flex-wrap items-center gap-2">

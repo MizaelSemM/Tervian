@@ -83,7 +83,7 @@ export default async function ProductMetricsPage() {
             <ArrowLeftIcon className="size-4" />
             Voltar ao painel
           </Link>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Métricas de produto</h1>
+          <h1 className="mt-2 text-page-title">Métricas de produto</h1>
           <p className="text-sm text-muted-foreground">
             As 6 métricas internas do PRD, calculadas a partir dos dados desta conta (não dependem
             de ferramenta externa).
@@ -99,10 +99,7 @@ export default async function ProductMetricsPage() {
                   {metric.ok !== null && (
                     <Badge
                       variant={metric.ok ? "secondary" : "destructive"}
-                      className={cn(
-                        metric.ok &&
-                          "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-                      )}
+                      className={cn(metric.ok && "border-success/30 bg-success-soft text-success")}
                     >
                       {metric.ok ? "na meta" : "atenção"}
                     </Badge>
@@ -119,8 +116,8 @@ export default async function ProductMetricsPage() {
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Janela de atividade: 7 dias · conversão: 90 dias · leads: 30 dias. Os eventos brutos
-          também são enviados ao PostHog quando configurado.
+          Janela de atividade: 7 dias, conversão: 90 dias, leads: 30 dias. Os eventos brutos também
+          são enviados ao PostHog quando configurado.
         </p>
       </div>
     );

@@ -50,8 +50,8 @@ export function DealForm({
       <CardHeader>
         <CardTitle>Novo negócio</CardTitle>
         <CardDescription>
-          {contact.name} · {formatPhoneBR(contact.phone)}
-          {contact.companyText ? ` · ${contact.companyText}` : ""}
+          {contact.name}, {formatPhoneBR(contact.phone)}
+          {contact.companyText ? `, ${contact.companyText}` : ""}
         </CardDescription>
       </CardHeader>
 

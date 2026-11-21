@@ -40,5 +40,5 @@ test("edita nome, probabilidade e ordem das etapas do funil", async ({ page }) =
   await expect(
     page.getByText(/Lead criado! O negócio está na primeira etapa do funil/),
   ).toBeVisible();
-  await expect(page.getByText(/^Contatado ·/).first()).toBeVisible();
+  await expect(page.getByText(/^Contatado,/).first()).toBeVisible();
 });

@@ -95,7 +95,7 @@ export default async function DealDetailPage({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-2xl font-semibold tracking-tight">{deal.title}</h1>
+                <h1 className="text-page-title">{deal.title}</h1>
                 <Badge variant={deal.status === "OPEN" ? "secondary" : "outline"}>
                   {DEAL_STATUS_LABELS[deal.status]}
                 </Badge>
@@ -104,7 +104,7 @@ export default async function DealDetailPage({
                 <Link href={`/contatos/${deal.contact.id}`} className="hover:underline">
                   {deal.contact.name}
                 </Link>{" "}
-                · {formatPhoneBR(deal.contact.phone)} · {deal.owner.name}
+                , {formatPhoneBR(deal.contact.phone)}, responsável {deal.owner.name}
               </p>
             </div>
 

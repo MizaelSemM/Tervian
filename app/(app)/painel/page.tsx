@@ -1,6 +1,5 @@
 import {
   AlertTriangleIcon,
-  ArrowRightIcon,
   CalendarClockIcon,
   CircleCheckIcon,
   ClockIcon,
@@ -87,15 +86,13 @@ function KpiCard({
     <Card size="sm" className="h-full">
       <CardContent className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-            {label}
-          </p>
+          <p className="text-xs font-medium text-muted-foreground">{label}</p>
           <span
             className={cn(
               "text-muted-foreground",
-              tone === "warning" && "text-amber-600 dark:text-amber-400",
+              tone === "warning" && "text-warning",
               tone === "danger" && "text-destructive",
-              tone === "success" && "text-emerald-600 dark:text-emerald-400",
+              tone === "success" && "text-success",
             )}
           >
             {icon}
@@ -105,7 +102,7 @@ function KpiCard({
           className={cn(
             "text-2xl font-semibold tracking-tight",
             tone === "danger" && "text-destructive",
-            tone === "warning" && "text-amber-700 dark:text-amber-400",
+            tone === "warning" && "text-warning",
           )}
         >
           {value}
@@ -139,7 +136,7 @@ function DealMiniList({
 }) {
   if (deals.length === 0) {
     return (
-      <p className="flex items-center gap-2 rounded-lg bg-emerald-500/5 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">
+      <p className="flex items-center gap-2 rounded-lg bg-success-soft px-3 py-2 text-sm text-success">
         <CircleCheckIcon className="size-4 shrink-0" />
         {emptyMessage}
       </p>
@@ -159,7 +156,7 @@ function DealMiniList({
                 {deal.title}
               </Link>
               <p className="text-xs text-muted-foreground">
-                {deal.contact.name} · {deal.stageName} · {deal.owner.name}
+                {deal.contact.name}, {deal.stageName}, {deal.owner.name}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -264,10 +261,8 @@ export default async function PainelPage({
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              Visão do gestor
-            </p>
-            <h1 className="text-2xl font-semibold tracking-tight">Painel</h1>
+            <p className="text-[13px] font-medium text-muted-foreground">Visão do gestor</p>
+            <h1 className="text-page-title">Painel</h1>
             <p className="text-sm text-muted-foreground">
               Em 30 segundos: quanto há no funil, o que está parado e quem precisa de atenção.
             </p>
@@ -281,7 +276,6 @@ export default async function PainelPage({
             </Link>
             <Link href="/painel/carteira" className={buttonVariants({ size: "lg" })}>
               Gerenciar carteira
-              <ArrowRightIcon className="size-4" />
             </Link>
           </div>
         </div>
@@ -498,9 +492,7 @@ export default async function PainelPage({
           </CardHeader>
           <CardContent className="grid gap-6 lg:grid-cols-2">
             <div className="flex flex-col justify-center gap-2 rounded-lg border border-border bg-muted/30 px-4 py-5">
-              <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                Taxa de ganho
-              </p>
+              <p className="text-xs font-medium text-muted-foreground">Taxa de ganho</p>
               <p className="text-3xl font-semibold tracking-tight">
                 {data.conversion.rate === null ? "—" : `${data.conversion.rate}%`}
               </p>
@@ -510,8 +502,8 @@ export default async function PainelPage({
                 </p>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  {data.conversion.won} {data.conversion.won === 1 ? "ganho" : "ganhos"} ·{" "}
-                  {data.conversion.lost} {data.conversion.lost === 1 ? "perdido" : "perdidos"} ·{" "}
+                  {data.conversion.won} {data.conversion.won === 1 ? "ganho" : "ganhos"},{" "}
+                  {data.conversion.lost} {data.conversion.lost === 1 ? "perdido" : "perdidos"},{" "}
                   {formatCurrencyBR(data.period.wonValue)} em ganhos
                 </p>
               )}
@@ -592,13 +584,12 @@ export default async function PainelPage({
                   className="inline-flex items-center gap-1 text-xs font-medium hover:underline"
                 >
                   Abrir Hoje
-                  <ArrowRightIcon className="size-3" />
                 </Link>
               </CardAction>
             </CardHeader>
             <CardContent>
               {data.selectedSeller.overdueTasks.length === 0 ? (
-                <p className="flex items-center gap-2 rounded-lg bg-emerald-500/5 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">
+                <p className="flex items-center gap-2 rounded-lg bg-success-soft px-3 py-2 text-sm text-success">
                   <CircleCheckIcon className="size-4 shrink-0" />
                   Nenhuma tarefa atrasada para {data.selectedSeller.name}.
                 </p>
@@ -615,7 +606,7 @@ export default async function PainelPage({
                           <Link href={`/negocios/${task.dealId}`} className="hover:underline">
                             {task.dealTitle}
                           </Link>{" "}
-                          · {task.contactName} · venceu em {formatDateBR(task.dueAt)}
+                          com {task.contactName}, venceu em {formatDateBR(task.dueAt)}
                         </p>
                       </div>
                       <Badge variant="destructive">

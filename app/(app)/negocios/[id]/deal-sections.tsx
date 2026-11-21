@@ -148,7 +148,7 @@ export function DealTasksCard({ tasks }: { tasks: DealTask[] }) {
                   <Badge variant="secondary">{TASK_TYPE_LABELS[task.type]}</Badge>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Para {formatDateBR(task.dueAt)} · {task.ownerName}
+                  Para {formatDateBR(task.dueAt)}, {task.ownerName}
                 </p>
               </li>
             ))}
@@ -157,9 +157,7 @@ export function DealTasksCard({ tasks }: { tasks: DealTask[] }) {
 
         {completed.length > 0 && (
           <div className="flex flex-col gap-2">
-            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              Concluídas
-            </p>
+            <p className="text-xs font-medium text-muted-foreground">Concluídas</p>
             <ul className="flex flex-col gap-2">
               {completed.map((task) => (
                 <li
@@ -169,8 +167,8 @@ export function DealTasksCard({ tasks }: { tasks: DealTask[] }) {
                   <p className="text-sm">{task.title}</p>
                   <p className="text-xs">
                     {formatDateBR(task.completedAt)}
-                    {task.result ? ` · ${TASK_RESULT_LABELS[task.result]}` : ""}
-                    {task.resultNote ? ` · ${task.resultNote}` : ""}
+                    {task.result ? `, ${TASK_RESULT_LABELS[task.result]}` : ""}
+                    {task.resultNote ? `, ${task.resultNote}` : ""}
                   </p>
                 </li>
               ))}
@@ -211,9 +209,7 @@ export function DealTimelineCard({
           <div className="flex flex-col gap-5">
             {[...groups.entries()].map(([key, group]) => (
               <section key={key} className="flex flex-col gap-2">
-                <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                  {group.label}
-                </h3>
+                <h3 className="text-xs font-medium text-muted-foreground">{group.label}</h3>
                 <ol className="flex flex-col gap-3">
                   {group.events.map((event) => (
                     <li key={event.id} className="flex gap-3">
@@ -227,7 +223,7 @@ export function DealTimelineCard({
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {formatDateTimeBR(event.createdAt)}
-                          {event.actorName ? ` · ${event.actorName}` : ""}
+                          {event.actorName ? `, ${event.actorName}` : ""}
                         </p>
                       </div>
                     </li>
@@ -339,7 +335,7 @@ export function DealNotesCard({ notes, dealId }: { notes: DealNote[]; dealId: st
                     <p className="text-sm whitespace-pre-wrap">{note.text}</p>
                     <div className="mt-1 flex items-center justify-between gap-2">
                       <p className="text-xs text-muted-foreground">
-                        {formatDateTimeBR(note.createdAt)} · {note.authorName}
+                        {formatDateTimeBR(note.createdAt)}, {note.authorName}
                       </p>
                       <div className="flex gap-3">
                         <button

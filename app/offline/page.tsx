@@ -7,7 +7,7 @@ export const metadata = {
 export default function OfflinePage() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col items-center justify-center gap-3 px-6 text-center">
-      <h1 className="text-2xl font-semibold tracking-tight">Você está sem conexão</h1>
+      <h1 className="text-page-title">Você está sem conexão</h1>
       <p className="text-sm text-muted-foreground">
         O Tervian precisa de internet para mostrar as tarefas do dia. Assim que a conexão voltar, é
         só recarregar.

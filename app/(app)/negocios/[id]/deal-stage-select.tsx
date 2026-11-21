@@ -38,7 +38,7 @@ export function DealStageSelect({
 
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor="deal-stage" className="text-xs text-muted-foreground">
+      <label htmlFor="deal-stage" className="sr-only">
         Etapa do funil
       </label>
       <select

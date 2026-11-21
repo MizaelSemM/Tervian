@@ -70,11 +70,11 @@ export default async function ContactDetailPage({
             >
               ← Contatos
             </Link>
-            <h1 className="truncate text-2xl font-semibold tracking-tight">{contact.name}</h1>
+            <h1 className="truncate text-page-title">{contact.name}</h1>
             <p className="text-sm text-muted-foreground">
               {formatPhoneBR(contact.phone)}
-              {contact.companyText ? ` · ${contact.companyText}` : ""}
-              {contact.owner ? ` · ${contact.owner.name}` : ""}
+              {contact.companyText ? `, ${contact.companyText}` : ""}
+              {contact.owner ? `, ${contact.owner.name}` : ""}
             </p>
             <div className="flex flex-wrap gap-2">
               {originLabel && <Badge variant="outline">{originLabel}</Badge>}
@@ -179,7 +179,7 @@ export default async function ContactDetailPage({
                           variant={deal.status === "OPEN" ? "secondary" : "outline"}
                           className={
                             deal.status === "WON"
-                              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                              ? "border-success/30 bg-success-soft text-success"
                               : deal.status === "LOST"
                                 ? "text-muted-foreground"
                                 : undefined
@@ -190,9 +190,9 @@ export default async function ContactDetailPage({
                       </div>
                       <p className="text-xs text-muted-foreground">
                         {deal.stageName}
-                        {deal.value !== null ? ` · ${formatCurrencyBR(deal.value)}` : ""}
+                        {deal.value !== null ? `, ${formatCurrencyBR(deal.value)}` : ""}
                         {deal.nextActionAt
-                          ? ` · próxima ação ${formatDateBR(deal.nextActionAt)}`
+                          ? `, próxima ação ${formatDateBR(deal.nextActionAt)}`
                           : ""}
                       </p>
                     </li>

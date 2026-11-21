@@ -26,7 +26,7 @@ export default function Loading() {
               <div className="h-5 w-8 rounded-full bg-muted" />
             </div>
             {Array.from({ length: 3 }).map((__, card) => (
-              <div key={card} className="flex flex-col gap-2 rounded-lg bg-background p-3">
+              <div key={card} className="flex flex-col gap-2 rounded-lg bg-card p-3">
                 <div className="h-4 w-40 rounded bg-muted" />
                 <div className="h-3 w-32 rounded bg-muted" />
                 <div className="h-4 w-20 rounded bg-muted" />

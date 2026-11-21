@@ -63,7 +63,7 @@ export default async function NewDealPage({
             >
               ← {contact.name}
             </Link>
-            <h1 className="text-2xl font-semibold tracking-tight">Novo negócio</h1>
+            <h1 className="text-page-title">Novo negócio</h1>
           </div>
 
           <DealForm
@@ -96,7 +96,7 @@ export default async function NewDealPage({
           >
             ← Negócios
           </Link>
-          <h1 className="text-2xl font-semibold tracking-tight">Novo negócio</h1>
+          <h1 className="text-page-title">Novo negócio</h1>
           <p className="text-muted-foreground">
             Escolha o contato que está negociando com você. O negócio nasce com uma próxima ação.
           </p>
@@ -137,14 +137,14 @@ export default async function NewDealPage({
             </Link>
           </div>
         ) : (
-          <ul className="divide-y divide-border overflow-hidden rounded-xl ring-1 ring-foreground/10">
+          <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
             {contacts.items.map((contact) => (
               <li key={contact.id} className="flex items-center justify-between gap-3 px-4 py-3">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{contact.name}</p>
                   <p className="truncate text-xs text-muted-foreground">
                     {formatPhoneBR(contact.phone)}
-                    {contact.companyText ? ` · ${contact.companyText}` : ""}
+                    {contact.companyText ? `, ${contact.companyText}` : ""}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">

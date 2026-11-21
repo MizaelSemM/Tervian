@@ -22,7 +22,7 @@ export default async function TeamPage() {
     return (
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-8">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Equipe</h1>
+          <h1 className="text-page-title">Equipe</h1>
           <p className="text-muted-foreground">
             Convide pessoas, acompanhe quem tem acesso e desative quem saiu (o histórico fica).
           </p>

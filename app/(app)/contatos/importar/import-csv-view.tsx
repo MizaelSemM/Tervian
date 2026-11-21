@@ -196,7 +196,7 @@ export function ImportCsvView() {
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Importar contatos</h1>
+          <h1 className="text-page-title">Importar contatos</h1>
           <p className="text-sm text-muted-foreground">
             Envie um CSV com nome e telefone. Cada linha válida cria um contato, um negócio na
             primeira etapa do funil e uma tarefa para hoje.
@@ -236,8 +236,8 @@ export function ImportCsvView() {
             <div>
               <h2 className="text-lg font-semibold">Pré-visualização</h2>
               <p className="text-sm text-muted-foreground">
-                {preview.total} linhas · {preview.valid} válidas · {preview.invalid} com erro ·
-                separador “{preview.separator}” · encoding {preview.encoding}
+                {preview.total} linhas, {preview.valid} válidas, {preview.invalid} com erro,
+                separador “{preview.separator}”, encoding {preview.encoding}
               </p>
             </div>
           </div>
@@ -325,7 +325,7 @@ export function ImportCsvView() {
                     <td className="px-2 py-2">{row.email || "—"}</td>
                     <td className="px-2 py-2">
                       {row.errors.length === 0 ? (
-                        <span className="text-emerald-600">OK</span>
+                        <span className="text-success">OK</span>
                       ) : (
                         <span className="text-destructive">{row.errors.join(" ")}</span>
                       )}
@@ -405,9 +405,9 @@ export function ImportCsvView() {
         <div className="rounded-xl border border-border p-4">
           <h2 className="text-lg font-semibold">Resultado da importação</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {result.total} linhas processadas · {result.imported} importadas · {result.updated}{" "}
-            atualizadas · {result.dealsCreated} novos negócios · {result.duplicates} duplicadas ·{" "}
-            {result.ignored} ignoradas · {result.errors.length} erros
+            {result.total} linhas processadas, {result.imported} importadas, {result.updated}{" "}
+            atualizadas, {result.dealsCreated} novos negócios, {result.duplicates} duplicadas,{" "}
+            {result.ignored} ignoradas, {result.errors.length} erros
           </p>
           {result.errors.length > 0 && (
             <button
